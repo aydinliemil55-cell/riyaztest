@@ -247,8 +247,39 @@ td{padding:10px 12px;border-top:1px solid var(--border)}
 
     <!-- RESULTS TAB -->
     <div id="tab-results" style="display:none">
-      <div style="font-size:20px;font-weight:800;margin-bottom:4px">Nəticələr</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px">Bütün şagird nəticələri</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:4px">Nəticələr & Statistika</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px">Bütün şagird nəticələri və diaqramlar</div>
+      
+      <!-- Statistika filteri -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <select id="stat-test-filter" onchange="renderStatCharts()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);outline:none">
+          <option value="">— Bütün testlər —</option>
+        </select>
+        <button onclick="renderStatCharts()" style="padding:8px 14px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">📊 Statistika yenilə</button>
+      </div>
+
+      <!-- Ümumi statistika kartları -->
+      <div id="stat-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px"></div>
+
+      <!-- Diaqramlar -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px" id="stat-charts-row">
+        <!-- Şagird sıralaması -->
+        <div class="card" style="padding:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px">🏆 Şagird Sıralaması</div>
+          <div id="stat-ranking" style="font-size:13px"></div>
+        </div>
+        <!-- Sual çətinliyi -->
+        <div class="card" style="padding:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px">❓ Sual Çətinliyi</div>
+          <div id="stat-question-chart" style="font-size:13px"></div>
+        </div>
+      </div>
+      
+      <!-- Sinif trendi -->
+      <div class="card" style="padding:16px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:12px">📈 Sinif Ortalası Trendi</div>
+        <div id="stat-trend-chart" style="height:120px;display:flex;align-items:flex-end;gap:4px;padding:8px;background:var(--cream);border-radius:8px"></div>
+      </div>
       <div class="card">
         <div class="grid2" style="margin-bottom:14px">
           <div>
@@ -444,6 +475,129 @@ function showToast(msg,type=''){
   t.style.background=type==='success'?'#2d6a4f':type==='error'?'#c1121f':'#0f0e0c';
   clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.display='none',3500);
 }
+
+// ═══ STATİSTİKA ═══
+function renderStatCharts(){
+  var d=ld();
+  var testFilter=document.getElementById('stat-test-filter');
+  
+  // Test filter seçimlərini yenilə
+  var tests={};
+  d.results.forEach(function(r){ tests[r.testId]=r.testTitle; });
+  var curVal=testFilter.value;
+  testFilter.innerHTML='<option value="">— Bütün testlər —</option>';
+  Object.keys(tests).forEach(function(tid){
+    var opt=document.createElement('option');
+    opt.value=tid; opt.textContent=tests[tid];
+    if(tid===curVal) opt.selected=true;
+    testFilter.appendChild(opt);
+  });
+
+  var filterId=testFilter.value;
+  var results=filterId?d.results.filter(function(r){return r.testId===filterId;}):d.results;
+
+  if(results.length===0){
+    document.getElementById('stat-cards').innerHTML='<div style="color:var(--muted);font-size:13px">Hələ nəticə yoxdur.</div>';
+    document.getElementById('stat-ranking').innerHTML='';
+    document.getElementById('stat-question-chart').innerHTML='';
+    document.getElementById('stat-trend-chart').innerHTML='';
+    return;
+  }
+
+  // ── Ümumi kartlar ──
+  var avg=Math.round(results.reduce(function(s,r){return s+r.score;},0)/results.length);
+  var best=results.reduce(function(a,b){return a.score>b.score?a:b;});
+  var worst=results.reduce(function(a,b){return a.score<b.score?a:b;});
+  var uniq={}; results.forEach(function(r){uniq[r.email]=1;});
+  
+  document.getElementById('stat-cards').innerHTML=[
+    {v:results.length,l:'Cəhd sayı',c:'#1d3557'},
+    {v:Object.keys(uniq).length,l:'Şagird sayı',c:'#2d6a4f'},
+    {v:avg+'%',l:'Ortalama',c:'#c9933a'},
+    {v:best.score+'%',l:'Ən yüksək',c:'#2d6a4f'},
+    {v:worst.score+'%',l:'Ən aşağı',c:'#c1121f'},
+  ].map(function(s){
+    return '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:14px;text-align:center">'
+      +'<div style="font-size:24px;font-weight:800;color:'+s.c+'">'+s.v+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+s.l+'</div></div>';
+  }).join('');
+
+  // ── Şagird sıralaması ──
+  var byEmail={};
+  results.forEach(function(r){
+    if(!byEmail[r.email]||r.score>byEmail[r.email].score) byEmail[r.email]=r;
+  });
+  var ranked=Object.values(byEmail).sort(function(a,b){return b.score-a.score;});
+  
+  document.getElementById('stat-ranking').innerHTML=ranked.map(function(r,i){
+    var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    var barW=r.score;
+    var c=r.score>=70?'#2d6a4f':r.score>=50?'#c9933a':'#c1121f';
+    return '<div style="margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+      +'<span style="font-size:12px">'+medal+' '+(i+1)+'. '+(r.name||r.email)+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:'+c+'">'+r.score+'%</span></div>'
+      +'<div style="background:var(--cream);border-radius:4px;height:8px;overflow:hidden">'
+      +'<div style="background:'+c+';height:100%;width:'+barW+'%;border-radius:4px;transition:width .3s"></div>'
+      +'</div></div>';
+  }).join('');
+
+  // ── Sual çətinliyi ──
+  var qStats={};
+  results.forEach(function(r){
+    if(!r.review) return;
+    r.review.forEach(function(rv,i){
+      var key='S'+(i+1);
+      if(!qStats[key]) qStats[key]={total:0,wrong:0};
+      qStats[key].total++;
+      if(rv.isCorrect===false) qStats[key].wrong++;
+    });
+  });
+  
+  var qArr=Object.keys(qStats).map(function(k){
+    return {k:k,pct:Math.round(qStats[k].wrong/qStats[k].total*100)};
+  }).sort(function(a,b){return b.pct-a.pct;});
+  
+  var maxPct=qArr.length>0?qArr[0].pct:1;
+  document.getElementById('stat-question-chart').innerHTML=
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Səhv edilmə faizi (çoxdan aza)</div>'
+    +qArr.map(function(q){
+      var c=q.pct>=60?'#c1121f':q.pct>=30?'#c9933a':'#2d6a4f';
+      return '<div style="margin-bottom:6px">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px">'
+        +'<span style="font-size:11px">'+q.k+'</span>'
+        +'<span style="font-size:11px;font-weight:700;color:'+c+'">'+q.pct+'%</span></div>'
+        +'<div style="background:var(--cream);border-radius:3px;height:6px">'
+        +'<div style="background:'+c+';height:100%;width:'+q.pct+'%;border-radius:3px"></div>'
+        +'</div></div>';
+    }).join('')
+    +(qArr.length>0?'<div style="margin-top:10px;font-size:11px;color:var(--muted)">⚠️ Ən çətin: <b>'+qArr[0].k+'</b> ('+qArr[0].pct+'% səhv)</div>':'');
+
+  // ── Sinif trendi ──
+  var byDate={};
+  results.forEach(function(r){
+    var day=r.date?r.date.substring(0,10):'?';
+    if(!byDate[day]) byDate[day]={sum:0,cnt:0};
+    byDate[day].sum+=r.score; byDate[day].cnt++;
+  });
+  var days=Object.keys(byDate).sort();
+  var dayAvgs=days.map(function(d){return{d:d.substring(5),v:Math.round(byDate[d].sum/byDate[d].cnt)};});
+  var maxV=Math.max.apply(null,dayAvgs.map(function(x){return x.v;}))||1;
+  
+  document.getElementById('stat-trend-chart').innerHTML=
+    dayAvgs.map(function(x){
+      var h=Math.max(8,Math.round(x.v/100*100));
+      var c=x.v>=70?'#2d6a4f':x.v>=50?'#c9933a':'#c1121f';
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">'
+        +'<div style="font-size:9px;color:var(--muted)">'+x.v+'%</div>'
+        +'<div style="width:100%;background:'+c+';border-radius:4px 4px 0 0;height:'+h+'px;max-width:40px;margin:0 auto"></div>'
+        +'<div style="font-size:9px;color:var(--muted)">'+x.d+'</div>'
+        +'</div>';
+    }).join('')
+    +(dayAvgs.length===0?'<div style="color:var(--muted);font-size:13px;padding:8px">Məlumat yoxdur</div>':'');
+}
+
+
 function switchTab(id,el){
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -527,6 +681,31 @@ function startTest(id){
   showPage('page-test');
 }
 function renderQuestions(){
+  // Hər sual üçün vaxt izləmə
+  window._qStartTimes = {};
+  window._qTimings = {};
+  window._lastQ = null;
+  window._qTimeInterval = setInterval(function(){
+    var cur = window._lastQ;
+    if(cur){
+      if(!window._qStartTimes[cur]) window._qStartTimes[cur] = Date.now();
+      window._qTimings[cur] = (window._qTimings[cur]||0) + 1;
+    }
+  }, 1000);
+  // Scroll ilə hansı sualın görüldüyünü izlə
+  setTimeout(function(){
+    var cards = document.querySelectorAll('[id^="qb_"]');
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          var qId = e.target.id.replace('qb_','');
+          window._lastQ = qId;
+          if(!window._qStartTimes[qId]) window._qStartTimes[qId] = Date.now();
+        }
+      });
+    },{threshold:0.5});
+    cards.forEach(function(c){obs.observe(c);});
+  },200);
   var el=document.getElementById('test-questions');
   var items=[];
   activeTest.questions.forEach(function(q,i){
@@ -548,7 +727,7 @@ function renderQuestions(){
       });
     } else {
       qHtml+='<div id="me_'+q.id+'" class="me-container"></div>';
-      qHtml+='<input type="hidden" id="ta_'+q.id+'" value="">';
+      qHtml+='<input type="hidden" id="ta_'+q.id+'" value="" oninput="setOpen(\''+q.id+'\',this.value)">';
     }
     qHtml+='</div>';
     items.push(qHtml);
@@ -680,9 +859,12 @@ function insertSymbol(qId, sym){
   setOpen(qId,ta.value);
 }
 function setOpen(qId,val){
-  answers[qId]=val||document.getElementById('ta_'+qId)&&document.getElementById('ta_'+qId).value||val;
+  // MathEditor hidden input-dan da dəyər al
+  var taEl=document.getElementById('ta_'+qId);
+  var realVal=val||(taEl?taEl.value:'');
+  answers[qId]=realVal;
   var bl=document.getElementById('qb_'+qId);
-  if(bl) bl.style.borderColor=val&&val.trim()?'#52b788':'var(--border)';
+  if(bl) bl.style.borderColor=realVal&&realVal.trim()?'#52b788':'var(--border)';
   updateProgress();
 }
 
@@ -700,6 +882,15 @@ function updateTimer(){
   el.style.color=timeLeft<=60?'var(--red)':'var(--ink)';
 }
 function submitTest(){
+  // MathEditor cavablarını answers-ə yığ
+  activeTest.questions.forEach(function(q){
+    if(q.type==='open'){
+      var taEl=document.getElementById('ta_'+q.id);
+      if(taEl && taEl.value && taEl.value.trim()){
+        answers[q.id]=taEl.value.trim();
+      }
+    }
+  });
   const un=activeTest.questions.filter(q=>{const a=answers[q.id];return a===undefined||a===''||(typeof a==='string'&&!a.trim());});
   if(un.length>0&&!confirm(un.length+' sual cavabsız qalıb. Testi bitirmək istəyirsiniz?'))return;
   doSubmit();
@@ -713,18 +904,36 @@ function doSubmit(auto=false){
       const ok=a===q.correct;if(ok)correct++;else wrong++;
       review.push({q:q.text,type:'mcq',userAns:a!==undefined?q.options[a]:'—',correctAns:q.options[q.correct],isCorrect:ok});
     }else{
-      openCount++;const ua=typeof a==='string'?a.trim():'';
+      openCount++;
+      // MathEditor hidden input-dan da oxu
+      var taEl=document.getElementById('ta_'+q.id);
+      var rawA = (taEl && taEl.value) ? taEl.value : (typeof a==='string'?a:'');
+      const ua=rawA.trim();
       const ok=ua.toLowerCase()===(q.answer||'').toLowerCase();
       if(ua){if(ok)correct++;else wrong++;}
       review.push({q:q.text,type:'open',userAns:ua||'—',correctAns:q.answer||'(Açıq)',isCorrect:ua?ok:null});
     }
   });
   const score=(correct+wrong)>0?Math.round(correct/(correct+wrong)*100):0;
-  const r={id:'r_'+Date.now(),email:currentUser.email,name:currentUser.name||currentUser.email,testId:activeTest.id,testTitle:activeTest.title,correct,wrong,openCount,score,total:activeTest.questions.length,review,date:new Date().toISOString()};
+  // Vaxt məlumatlarını topla
+  clearInterval(window._qTimeInterval||0);
+  const timings = window._qTimings || {};
+  const reviewWithTime = review.map(function(rv,i){
+    var q = activeTest.questions[i];
+    rv.timeSpent = timings[q.id] || 0;
+    return rv;
+  });
+  const totalTime = Object.values(timings).reduce(function(a,b){return a+b;},0);
+  const r={id:'r_'+Date.now(),email:currentUser.email,name:currentUser.name||currentUser.email,testId:activeTest.id,testTitle:activeTest.title,correct,wrong,openCount,score,total:activeTest.questions.length,review:reviewWithTime,totalTime,date:new Date().toISOString()};
   const d=ld();d.results.push(r);sv(SK.results,d.results);
   displayResult(r);
 }
 function displayResult(r){
+  // Əvvəlki nəticələri tap (eyni şagird, eyni test)
+  const d=ld();
+  const prev=d.results.filter(function(x){return x.email===r.email&&x.testId===r.testId&&x.id!==r.id;});
+  const lastPrev=prev.length>0?prev[prev.length-1]:null;
+  const trend=lastPrev?(r.score>lastPrev.score?'up':r.score<lastPrev.score?'down':'same'):null;
   const pct=r.score/100,circ=377,offset=circ-pct*circ;
   const arc=document.getElementById('result-arc');
   arc.setAttribute('stroke-dashoffset',offset);
@@ -734,11 +943,67 @@ function displayResult(r){
   const title=r.score>=80?'Əla nəticə!':r.score>=60?'Yaxşı nəticə':r.score>=40?'Daha çox çalışın':'Öyrənməyə davam edin';
   document.getElementById('result-title').textContent=emoji+' '+title;
   document.getElementById('result-sub').textContent=r.testTitle;
-  document.getElementById('result-stats').innerHTML=[{v:r.correct,l:'Düzgün',c:'#2d6a4f'},{v:r.wrong,l:'Səhv',c:'#c1121f'},{v:r.total,l:'Ümumi',c:'#0f0e0c'}].map(s=>`
-    <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 20px;min-width:80px;text-align:center">
-      <div style="font-size:24px;font-weight:800;color:${s.c}">${s.v}</div>
-      <div style="font-size:11px;color:var(--muted)">${s.l}</div>
-    </div>`).join('');
+  // Əsas statistika kartları
+  const mins=Math.floor((r.totalTime||0)/60);
+  const secs=(r.totalTime||0)%60;
+  const timeStr=mins>0?mins+'dəq '+secs+'san':secs+'san';
+  const trendHtml=trend==='up'?'<span style="color:#2d6a4f;font-size:12px">▲ Artım</span>':trend==='down'?'<span style="color:#c1121f;font-size:12px">▼ Azalma</span>':trend==='same'?'<span style="color:#c9933a;font-size:12px">→ Eyni</span>':'';
+  document.getElementById('result-stats').innerHTML=
+    [{v:r.correct,l:'Düzgün',c:'#2d6a4f'},{v:r.wrong,l:'Səhv',c:'#c1121f'},{v:r.total,l:'Ümumi',c:'#0f0e0c'},{v:timeStr,l:'Vaxt',c:'#1d3557'}]
+    .map(s=>'<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 20px;min-width:80px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+s.c+'">'+s.v+'</div><div style="font-size:11px;color:var(--muted)">'+s.l+'</div></div>').join('')
+    +(trendHtml?'<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 20px;min-width:80px;text-align:center"><div style="font-size:18px;font-weight:800">'+trendHtml+'</div><div style="font-size:11px;color:var(--muted)">Əvvəlki ilə</div></div>':'');
+  
+  // Sual vaxt diaqramı
+  const timingData=r.review.map(function(rv,i){return{q:i+1,t:rv.timeSpent||0,ok:rv.isCorrect};});
+  const maxT=Math.max.apply(null,timingData.map(function(d){return d.t;}))||1;
+  const barChart=timingData.map(function(d){
+    var h=Math.max(8,Math.round(d.t/maxT*80));
+    var c=d.ok===true?'#2d6a4f':d.ok===false?'#c1121f':'#c9933a';
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">'
+      +'<div style="font-size:9px;color:var(--muted)">'+d.t+'s</div>'
+      +'<div style="width:100%;background:'+c+';border-radius:4px 4px 0 0;height:'+h+'px;max-width:32px;margin:0 auto"></div>'
+      +'<div style="font-size:10px;color:var(--muted)">S'+d.q+'</div>'
+      +'</div>';
+  }).join('');
+  
+  // Dairə diaqramı (SVG)
+  const total2=r.correct+r.wrong;
+  const pctC=total2?r.correct/total2:0;
+  const pctW=total2?r.wrong/total2:0;
+  const r2=40,cx=50,cy=50;
+  function arcPath(start,end,color){
+    if(end-start>=0.9999) return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r2+'" fill="'+color+'"/>';
+    var s=start*Math.PI*2-Math.PI/2, e=end*Math.PI*2-Math.PI/2;
+    var x1=cx+r2*Math.cos(s),y1=cy+r2*Math.sin(s);
+    var x2=cx+r2*Math.cos(e),y2=cy+r2*Math.sin(e);
+    var large=end-start>0.5?1:0;
+    return '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r2+','+r2+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+color+'"/>';
+  }
+  const svgPie=total2>0?
+    '<svg width="100" height="100" viewBox="0 0 100 100">'
+    +arcPath(0,pctC,'#2d6a4f')
+    +arcPath(pctC,pctC+pctW,'#c1121f')
+    +(pctC+pctW<1?arcPath(pctC+pctW,1,'#e9e5d8'):'')
+    +'</svg>':'';
+
+  // Əlavə statistika bölməsi
+  var extraStats=document.getElementById('result-extra');
+  if(!extraStats){
+    extraStats=document.createElement('div');
+    extraStats.id='result-extra';
+    var reviewEl=document.getElementById('result-review');
+    reviewEl.parentNode.insertBefore(extraStats,reviewEl);
+  }
+  extraStats.innerHTML=
+    '<div style="margin:16px 0 8px;font-weight:700;font-size:14px">📊 Ətraflı Statistika</div>'
+    +'<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">'
+    +svgPie
+    +'<div><div style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:12px;height:12px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>Düzgün: '+r.correct+' ('+Math.round(pctC*100)+'%)</div>'
+    +'<div style="font-size:12px;display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:#c1121f;border-radius:2px;display:inline-block"></span>Səhv: '+r.wrong+' ('+Math.round(pctW*100)+'%)</div></div>'
+    +'</div>'
+    +'<div style="font-weight:600;font-size:13px;margin-bottom:8px">⏱ Hər sualda vaxt (saniyə)</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:4px;height:110px;padding:8px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:16px">'+barChart+'</div>'
+    +(lastPrev?'<div style="background:var(--cream);border-radius:10px;padding:12px;font-size:13px">📈 Əvvəlki nəticəniz: <b>'+lastPrev.score+'%</b> → İndi: <b>'+r.score+'%</b> '+trendHtml+'</div>':'');
   document.getElementById('result-review').innerHTML=r.review.map((rv,i)=>{
     const lc=rv.type==='open'?'#c9933a':rv.isCorrect?'#2d6a4f':'#c1121f';
     const icon=rv.type==='open'?'📝':rv.isCorrect?'✓':'✗';
@@ -1256,7 +1521,20 @@ function createMathEditor(containerId, hiddenInputId, initialLatex){
 
   var me=new MathEditor(field, function(latex){
     var inp=document.getElementById(hiddenInputId);
-    if(inp){inp.value=latex;inp.dispatchEvent(new Event('input'));}
+    if(inp){
+      inp.value=latex;
+      inp.dispatchEvent(new Event('input'));
+    }
+    // Şagird test sahəsi üçün setOpen çağır
+    if(hiddenInputId.startsWith('ta_')){
+      var qId=hiddenInputId.replace('ta_','');
+      setOpen(qId, latex);
+    }
+    // Admin cavab sahəsi üçün updateQField çağır
+    if(hiddenInputId.startsWith('ans_')){
+      var qId=hiddenInputId.replace('ans_','');
+      updateQField(qId, 'answer', latex);
+    }
   });
   _meInstances[containerId]=me;
   // Mövcud dəyəri yükle
