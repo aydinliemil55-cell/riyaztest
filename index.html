@@ -101,6 +101,43 @@ td{padding:10px 12px;border-top:1px solid var(--border)}
 .me-btn{padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:14px;cursor:pointer;font-family:inherit;line-height:1;min-width:34px;transition:background .1s;touch-action:manipulation}
 .me-btn:hover{background:#e8dfd0}
 .me-btn:active{transform:scale(.97)}
+
+/* Responsiv şəkillər */
+.q-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: block;
+  cursor: zoom-in;
+  transition: transform .2s;
+}
+@media (max-width: 768px) {
+  .q-image {
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+}
+
+/* Şəkil zoom overlay */
+.img-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  cursor: zoom-out;
+}
+.img-zoom-overlay img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+}
 </style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
@@ -811,7 +848,7 @@ function renderQuestions(){
     qHtml+=(q.type==='mcq'?'Çoxvariantlı':'Açıq cavab');
     qHtml+='</span></div>';
     qHtml+='<div style="font-size:15px;font-weight:500;line-height:1.6;margin-bottom:14px">';
-    if(q.image) qHtml+='<img src="'+q.image+'" style="max-width:100%;border-radius:8px;margin-bottom:10px;display:block">';
+    if(q.image) qHtml+='<img src="'+q.image+'" class="q-image" onclick="zoomImg(this)" alt="Sual şəkli">';
     qHtml+=(q.text||'');
     qHtml+='</div>';
     if(q.type==='mcq'){
@@ -1163,7 +1200,7 @@ function showParsedPreview(questions, defaultTitle){
     html+='<span style="background:'+(q.type==='mcq'?'#dbeafe':'#fef9c3')+';color:'+(q.type==='mcq'?'#1e40af':'#854d0e')+';border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;flex-shrink:0">'+(q.type==='mcq'?'MCQ':'Aqiq')+'</span>';
     if(q.image) html+='<span style="background:#f3e8ff;color:#7c3aed;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;flex-shrink:0">Shekil</span>';
     html+='<div style="flex:1;min-width:0">';
-    if(q.image) html+='<img src="'+q.image+'" style="max-width:100%;max-height:100px;border-radius:6px;margin-bottom:4px;display:block">';
+    if(q.image) html+='<img src="'+q.image+'" class="q-image" style="max-height:120px;object-fit:contain" onclick="zoomImg(this)">';
     html+='<div style="font-size:13px;font-weight:500;line-height:1.4">'+(q.text||'')+'</div>';
     html+='</div></div></div>';
   });
@@ -1248,7 +1285,7 @@ function appendQCard(q){
       </div>
     </div>
     <label class="lbl">Sualın mətni</label>
-    ${q.image?`<img src="${q.image}" style="max-width:100%;max-height:120px;border-radius:8px;margin-bottom:8px;display:block;border:1px solid var(--border)">`:''}
+    ${q.image?`<img src="${q.image}" class="q-image" style="max-height:160px;border:1px solid var(--border);object-fit:contain">`:''}
     <textarea class="inp" rows="2" placeholder="Sualı daxil edin..." oninput="updateQField('${q.id}','text',this.value)" style="resize:vertical">${q.text}</textarea>
     <div id="qbody_${q.id}">${buildQBody(q)}</div>`;
   document.getElementById('q-builder-list').appendChild(div);
@@ -1906,6 +1943,18 @@ function normalizeAnswer(s){
     .replace(/\\/g,'')
     // Nöqtəli ədədlər: 3,5 = 3.5
     .replace(/,/g,'.');
+}
+
+
+function zoomImg(img){
+  var ov = document.createElement('div');
+  ov.className = 'img-zoom-overlay';
+  var big = document.createElement('img');
+  big.src = img.src;
+  big.alt = 'Böyük şəkil';
+  ov.appendChild(big);
+  ov.addEventListener('click', function(){ ov.remove(); });
+  document.body.appendChild(ov);
 }
 
 // ═══ SETTINGS ═══
