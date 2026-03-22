@@ -1575,9 +1575,138 @@ function _memove(id,d){if(_meInstances[id])_meInstances[id].move(d);}
 function _meexit(id){if(_meInstances[id])_meInstances[id].exit();}
 function _meclear(id){if(_meInstances[id])_meInstances[id].clear();}
 
+function isMobile(){
+  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth < 768;
+}
+
 function createMathEditor(containerId, hiddenInputId, initialLatex){
   var container = document.getElementById(containerId);
   if(!container) return;
+
+  // Telefonda sadə textarea göstər
+  if(isMobile()){
+    var ta = document.createElement('textarea');
+    ta.className = 'inp';
+    ta.rows = 3;
+    ta.placeholder = 'Cavabı yazın...';
+    ta.style.cssText = 'resize:vertical;margin-bottom:0;font-size:16px';
+    ta.id = containerId + '_mta';
+    if(initialLatex) ta.value = initialLatex;
+    else {
+      var hi = document.getElementById(hiddenInputId);
+      if(hi && hi.value) ta.value = hi.value;
+    }
+    ta.addEventListener('input', function(){
+      var hi = document.getElementById(hiddenInputId);
+      if(hi){ hi.value = ta.value; hi.dispatchEvent(new Event('input')); }
+      if(hiddenInputId.startsWith('ta_')){
+        setOpen(hiddenInputId.replace('ta_',''), ta.value);
+      }
+      if(hiddenInputId.startsWith('ans_')){
+        updateQField(hiddenInputId.replace('ans_',''), 'answer', ta.value);
+      }
+    });
+
+    // Tam simvol paneli
+    var groups = [
+      {n:'Kəsr/Kök', s:[
+        {l:'x/y', v:'/', special:'frac'},
+        {l:'√', v:'√('},
+        {l:'∛', v:'∛('},
+        {l:'x²', v:'²'},
+        {l:'x³', v:'³'},
+        {l:'xⁿ', v:'^'},
+      ]},
+      {n:'Həndəsə', s:[
+        {l:'°', v:'°'},{l:'∠', v:'∠'},{l:'⊥', v:'⊥'},
+        {l:'∥', v:'∥'},{l:'△', v:'△'},{l:'≅', v:'≅'},
+        {l:'~', v:'~'},{l:'⌢', v:'⌢'},
+      ]},
+      {n:'Əməliyyat', s:[
+        {l:'×', v:'×'},{l:'÷', v:'÷'},{l:'±', v:'±'},
+        {l:'≠', v:'≠'},{l:'≤', v:'≤'},{l:'≥', v:'≥'},
+        {l:'≈', v:'≈'},{l:'∞', v:'∞'},
+      ]},
+      {n:'Yunan', s:[
+        {l:'α', v:'α'},{l:'β', v:'β'},{l:'γ', v:'γ'},
+        {l:'θ', v:'θ'},{l:'π', v:'π'},{l:'φ', v:'φ'},
+        {l:'Δ', v:'Δ'},{l:'Σ', v:'Σ'},
+      ]},
+      {n:'Kəsr ədədlər', s:[
+        {l:'½', v:'½'},{l:'⅓', v:'⅓'},{l:'¼', v:'¼'},
+        {l:'¾', v:'¾'},{l:'⅔', v:'⅔'},
+      ]},
+    ];
+
+    var symPanel = document.createElement('div');
+    symPanel.style.cssText = 'background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:8px;margin-bottom:8px';
+
+    // Kəsr popup funksiyası
+    function insertFracMobile(){
+      var n = prompt('Pay:');
+      if(n===null) return;
+      var d = prompt('Məxrəc:');
+      if(d===null) return;
+      insertAt(n+'/'+d);
+    }
+
+    function insertAt(val){
+      var start = ta.selectionStart, end = ta.selectionEnd;
+      ta.value = ta.value.substring(0,start) + val + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + val.length;
+      ta.focus();
+      ta.dispatchEvent(new Event('input'));
+    }
+
+    groups.forEach(function(g){
+      var row = document.createElement('div');
+      row.style.cssText = 'margin-bottom:6px';
+      var label = document.createElement('div');
+      label.style.cssText = 'font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px';
+      label.textContent = g.n;
+      row.appendChild(label);
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;flex-wrap:wrap;gap:3px';
+      g.s.forEach(function(sym){
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = sym.l;
+        btn.style.cssText = 'padding:7px 11px;border:1px solid var(--border);border-radius:7px;background:#fff;font-size:16px;cursor:pointer;touch-action:manipulation;min-width:38px;font-family:inherit';
+        btn.addEventListener('touchstart', function(e){
+          e.preventDefault();
+          if(sym.special==='frac') insertFracMobile();
+          else insertAt(sym.v);
+        }, {passive:false});
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          if(sym.special==='frac') insertFracMobile();
+          else insertAt(sym.v);
+        });
+        btns.appendChild(btn);
+      });
+      row.appendChild(btns);
+      symPanel.appendChild(row);
+    });
+
+    // Sil düyməsi
+    var delBtn = document.createElement('button');
+    delBtn.type='button';
+    delBtn.textContent='⌫ Sil';
+    delBtn.style.cssText='padding:7px 14px;border:1px solid var(--border);border-radius:7px;background:#fee2e2;color:#c1121f;font-size:14px;cursor:pointer;touch-action:manipulation;margin-top:4px;font-family:inherit';
+    delBtn.addEventListener('click',function(e){
+      e.preventDefault();
+      var start=ta.selectionStart,end=ta.selectionEnd;
+      if(start!==end){ta.value=ta.value.substring(0,start)+ta.value.substring(end);ta.selectionStart=ta.selectionEnd=start;}
+      else if(start>0){ta.value=ta.value.substring(0,start-1)+ta.value.substring(start);ta.selectionStart=ta.selectionEnd=start-1;}
+      ta.focus();ta.dispatchEvent(new Event('input'));
+    });
+    symPanel.appendChild(delBtn);
+
+    container.appendChild(symPanel);
+    container.appendChild(ta);
+    setTimeout(function(){ ta.focus(); }, 100);
+    return;
+  }
 
   var groups = [
     ['Struktur',[['x/y','ins','frac'],['√','ins','sqrt'],['∛','ins','cbrt'],['xⁿ','ins','pow'],['xₙ','ins','sub'],['|x|','ins','abs']]],
