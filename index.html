@@ -1542,6 +1542,25 @@ function MathEditor(fieldEl, onChangeCallback) {
   });
 
   fieldEl.addEventListener('click',function(){fieldEl.focus();});
+  // Telefon klaviaturası üçün
+  fieldEl.addEventListener('touchstart',function(e){
+    var pi=document.getElementById(containerId+'_phone');
+    if(pi){
+      pi.focus();
+      // Klaviaturadan giriş
+      pi.oninput=function(){
+        var val=pi.value;
+        if(val){
+          val.split('').forEach(function(ch){ self.type(ch); });
+          pi.value='';
+        }
+      };
+      pi.onkeydown=function(e){
+        if(e.key==='Backspace'){ self.backspace(); }
+        else if(e.key==='Enter'||e.key==='Tab'){ self.exit(); }
+      };
+    }
+  },{passive:true});
   render();
 }
 
@@ -1606,10 +1625,21 @@ function createMathEditor(containerId, hiddenInputId, initialLatex){
   field.id=containerId+'_field';
   field.tabIndex=0;
 
+  // Telefon üçün gizli input - klaviatura açmaq üçün
+  var phoneInput=document.createElement('input');
+  phoneInput.type='text';
+  phoneInput.style.cssText='position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;font-size:16px';
+  phoneInput.setAttribute('autocomplete','off');
+  phoneInput.setAttribute('autocorrect','off');
+  phoneInput.setAttribute('autocapitalize','off');
+  phoneInput.id=containerId+'_phone';
+
   var hint=document.createElement('div');
   hint.style.cssText='font-size:11px;color:var(--muted);margin-top:5px';
   hint.textContent='/ = kəsr  |  ^ = qüvvət  |  _ = altındeks  |  Tab = çıx';
 
+  container.style.position='relative';
+  container.appendChild(phoneInput);
   container.appendChild(tb);
   container.appendChild(field);
   container.appendChild(hint);
