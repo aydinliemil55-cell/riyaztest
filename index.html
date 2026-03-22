@@ -102,6 +102,69 @@ td{padding:10px 12px;border-top:1px solid var(--border)}
 .me-btn:hover{background:#e8dfd0}
 .me-btn:active{transform:scale(.97)}
 </style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAFqTfb7AJJrsbGnc43oNv4POodBRh_71Q",
+  authDomain: "riyaztest-4a12b.firebaseapp.com",
+  projectId: "riyaztest-4a12b",
+  storageBucket: "riyaztest-4a12b.firebasestorage.app",
+  messagingSenderId: "16216771658",
+  appId: "1:16216771658:web:92f8859034300dbe8faab3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.FB = {
+  async saveAll(data){
+    try{
+      await setDoc(doc(db,'riyaztest','data'), {
+        tests: JSON.stringify(data.tests||[]),
+        emails: JSON.stringify(data.emails||[]),
+        results: JSON.stringify(data.results||[]),
+        ae: data.ae||'',
+        ap: data.ap||'',
+        updatedAt: new Date().toISOString()
+      });
+      return true;
+    }catch(e){ console.error('FB save error:',e); return false; }
+  },
+  async loadAll(){
+    try{
+      const snap = await getDoc(doc(db,'riyaztest','data'));
+      if(!snap.exists()) return null;
+      const d = snap.data();
+      return {
+        tests: JSON.parse(d.tests||'[]'),
+        emails: JSON.parse(d.emails||'[]'),
+        results: JSON.parse(d.results||'[]'),
+        ae: d.ae||'admin@riyaztest.az',
+        ap: d.ap||'admin123'
+      };
+    }catch(e){ console.error('FB load error:',e); return null; }
+  }
+};
+
+window.addEventListener('load', async function(){
+  const fbData = await window.FB.loadAll();
+  if(fbData){
+    localStorage.setItem('rt_tests', JSON.stringify(fbData.tests));
+    localStorage.setItem('rt_emails', JSON.stringify(fbData.emails));
+    localStorage.setItem('rt_results', JSON.stringify(fbData.results));
+    if(fbData.ae) localStorage.setItem('rt_ae', fbData.ae);
+    if(fbData.ap) localStorage.setItem('rt_ap', fbData.ap);
+    // UI yenilə
+    if(typeof renderAdminTests==='function') renderAdminTests();
+    if(typeof renderEmails==='function') renderEmails();
+    if(typeof renderResults==='function') renderResults();
+    if(typeof renderStudentTests==='function') renderStudentTests();
+    console.log('Firebase: '+fbData.tests.length+' test yükləndi');
+  }
+});
+</script>
 </head>
 <body>
 
@@ -302,6 +365,20 @@ td{padding:10px 12px;border-top:1px solid var(--border)}
     <!-- SETTINGS TAB -->
     <div id="tab-settings" style="display:none">
       <div style="font-size:20px;font-weight:800;margin-bottom:16px">Ayarlar</div>
+
+      <!-- Məlumat köçürmə -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px">📤 Məlumatları Köçür</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:14px">Testləri və nəticələri cihazlar arasında köçürmək üçün istifadə edin.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="exportData()" style="padding:10px 18px;background:var(--emerald);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">📥 Yüklə (ixrac)</button>
+          <label style="padding:10px 18px;background:var(--gold);color:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:inline-block">
+            📤 Yüklə (idxal)
+            <input type="file" accept=".json" onchange="importData(this)" style="display:none">
+          </label>
+        </div>
+        <div id="import-msg" style="margin-top:10px;font-size:13px;display:none"></div>
+      </div>
       <div class="card">
         <div style="font-weight:700;margin-bottom:12px">Admin Hesabı</div>
         <label class="lbl">Admin email</label>
@@ -451,7 +528,25 @@ td{padding:10px 12px;border-top:1px solid var(--border)}
 // ═══ DATA ═══
 const SK={emails:'rt_emails',tests:'rt_tests',results:'rt_results',ae:'rt_admin_email',ap:'rt_admin_pass'};
 function ld(){return{emails:JSON.parse(localStorage.getItem(SK.emails)||'[]'),tests:JSON.parse(localStorage.getItem(SK.tests)||'[]'),results:JSON.parse(localStorage.getItem(SK.results)||'[]'),ae:localStorage.getItem(SK.ae)||'admin@riyaztest.az',ap:localStorage.getItem(SK.ap)||'admin123'};}
-function sv(k,v){localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}
+function sv(k,v){
+  localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+  // Firebase-ə sync et (debounce ilə - çox tez-tez yazmamaq üçün)
+  clearTimeout(window._fbSyncTimer);
+  window._fbSyncTimer = setTimeout(function(){
+    if(window.FB){
+      var d = ld();
+      window.FB.saveAll({
+        tests: d.tests,
+        emails: d.emails,
+        results: d.results,
+        ae: localStorage.getItem('rt_ae')||'',
+        ap: localStorage.getItem('rt_ap')||''
+      }).then(function(ok){
+        if(ok) console.log('Firebase sync OK');
+      });
+    }
+  }, 1000);
+}
 
 // Seed demo data
 (function(){
@@ -1547,10 +1642,77 @@ function createMathEditor(containerId, hiddenInputId, initialLatex){
   }
 }
 
+
+// ═══ DATA EXPORT/IMPORT ═══
+function exportData(){
+  var d = ld();
+  var blob = new Blob([JSON.stringify(d, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'riyaztest_data_' + new Date().toISOString().substring(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Məlumatlar yükləndi!', 'success');
+}
+
+function importData(input){
+  var f = input.files && input.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = JSON.parse(e.target.result);
+      var msg = document.getElementById('import-msg');
+      if(!data.tests && !data.emails){
+        msg.textContent = '❌ Yanlış fayl formatı!';
+        msg.style.color = '#c1121f';
+        msg.style.display = 'block';
+        return;
+      }
+      if(!confirm('Mövcud məlumatların üzərinə yazılsın?')) return;
+      
+      var d = ld();
+      if(data.tests) d.tests = data.tests;
+      if(data.emails) d.emails = data.emails;
+      if(data.results) d.results = data.results;
+      if(data.ae) localStorage.setItem(SK.ae, data.ae);
+      if(data.ap) localStorage.setItem(SK.ap, data.ap);
+      sv(SK.tests, d.tests);
+      sv(SK.emails, d.emails);
+      sv(SK.results, d.results);
+      
+      msg.textContent = '✅ İdxal uğurlu! ' + (data.tests||[]).length + ' test, ' + (data.results||[]).length + ' nəticə yükləndi.';
+      msg.style.color = '#2d6a4f';
+      msg.style.display = 'block';
+      renderAdminTests();
+      renderEmails();
+      renderResults();
+      showToast('Məlumatlar idxal edildi!', 'success');
+    } catch(err){
+      var msg = document.getElementById('import-msg');
+      msg.textContent = '❌ Xəta: ' + err.message;
+      msg.style.color = '#c1121f';
+      msg.style.display = 'block';
+    }
+  };
+  reader.readAsText(f, 'utf-8');
+  input.value = '';
+}
+
 // ═══ SETTINGS ═══
 function saveSettings(){
   localStorage.setItem(SK.ae,document.getElementById('s-email').value);
   localStorage.setItem(SK.ap,document.getElementById('s-pass').value);
+  // Firebase-ə də yaz
+  if(window.FB){
+    var d=ld();
+    window.FB.saveAll({
+      tests:d.tests, emails:d.emails, results:d.results,
+      ae:document.getElementById('s-email').value,
+      ap:document.getElementById('s-pass').value
+    });
+  }
   showToast('Saxlandı ✓','success');
 }
 </script>
