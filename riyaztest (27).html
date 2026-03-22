@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiyazTest</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#faf8f3;color:#0f0e0c;min-height:100vh}
+input,textarea,select,button{font-family:inherit}
+:root{
+  --ink:#0f0e0c;--paper:#faf8f3;--cream:#f0ebe0;--gold:#c9933a;
+  --emerald:#2d6a4f;--red:#c1121f;--muted:#8a8070;--border:#d8d0c0;--white:#fff;
+}
+/* NAV */
+#nav{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 16px;display:none;align-items:center;justify-content:space-between;height:56px}
+.logo{font-size:20px;font-weight:900;letter-spacing:-0.5px}
+.logo span{color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#fff}
+.badge.student{background:var(--emerald)}.badge.admin{background:var(--gold)}
+/* PAGES */
+.page{display:none}.page.active{display:block}
+/* CARD */
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s;text-decoration:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ink{background:var(--ink);color:#fff}.btn-gold{background:var(--gold);color:#fff}
+.btn-emerald{background:var(--emerald);color:#fff}.btn-red{background:var(--red);color:#fff}
+.btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--border)}
+.btn-sm{padding:6px 14px;font-size:13px;border-radius:8px}
+.btn-full{width:100%}
+/* INPUTS */
+.inp{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:var(--paper);color:var(--ink);outline:none;display:block;margin-bottom:14px}
+.inp:focus{border-color:var(--gold)}
+.lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;display:block}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:580px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;z-index:9999;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;color:#fff;display:none;max-width:300px;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+/* LOGIN */
+#login-box{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:40px 28px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.1)}
+/* TEST CARDS */
+.test-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;position:relative;transition:border-color .2s;margin-bottom:12px}
+.test-card:hover{border-color:var(--gold)}
+/* OPTIONS */
+.opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;margin-bottom:8px;user-select:none;transition:all .15s}
+.opt.selected{border-color:var(--gold);background:#fdf5e4;font-weight:600}
+.opt-letter{width:26px;height:26px;border-radius:50%;background:var(--cream);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.opt.selected .opt-letter{background:var(--gold);color:#fff}
+/* TABS */
+.tabs{background:var(--white);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;position:sticky;top:56px;z-index:50}
+.tab{padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;color:var(--muted)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+/* WORD UPLOAD */
+.upload-zone{border:2px dashed var(--border);border-radius:16px;text-align:center;background:var(--paper);margin-bottom:16px;overflow:hidden}
+.upload-zone label{display:block;padding:36px 20px;cursor:pointer;width:100%;height:100%}
+.upload-zone.has-file{border-color:var(--emerald);background:#f0fdf4}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;background:var(--paper)}
+td{padding:10px 12px;border-top:1px solid var(--border)}
+.score-pill{padding:3px 10px;border-radius:20px;font-weight:700;font-size:12px;display:inline-block}
+/* PROGRESS */
+.prog-bar{height:6px;background:var(--cream);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--emerald));border-radius:3px;transition:width .3s}
+/* REVIEW */
+.review-item{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;border-left:4px solid var(--border)}
+.review-item.correct{border-left-color:var(--emerald)}
+.review-item.wrong{border-left-color:var(--red)}
+.review-item.open{border-left-color:var(--gold)}
+/* Q BUILDER */
+.qb{border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--paper)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.grid2{grid-template-columns:1fr}}
+
+/* Math Editor */
+.me-field{border:2px solid var(--border);border-radius:10px;padding:12px 16px;min-height:56px;font-size:22px;cursor:text;background:var(--white);display:flex;align-items:center;flex-wrap:wrap;gap:2px;line-height:1.6;outline:none}
+.me-field:focus-within{border-color:var(--gold)}
+.mtext{display:inline}
+.mcursor{display:inline-block;width:2px;height:1.1em;background:var(--gold);vertical-align:middle;animation:meblink .8s infinite}
+@keyframes meblink{0%,100%{opacity:1}50%{opacity:0}}
+.mfrac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 2px;font-size:.8em}
+.mfrac-num{border-bottom:2px solid #333;padding:0 4px 1px;min-width:12px;text-align:center}
+.mfrac-den{padding:1px 4px 0;min-width:12px;text-align:center}
+.msqrt{display:inline-flex;align-items:center;vertical-align:middle;margin:0 2px}
+.msqrt-sign{font-size:1.3em;line-height:1;margin-right:-2px}
+.msqrt-body{border-top:2px solid #333;padding:1px 4px 0;min-width:12px}
+.mpow{display:inline-flex;align-items:flex-start;vertical-align:middle}
+.mpow-exp{font-size:.65em;vertical-align:super;margin-left:1px}
+.msub{display:inline-flex;align-items:flex-end;vertical-align:middle}
+.msub-idx{font-size:.65em;vertical-align:sub;margin-left:1px}
+.me-toolbar{display:flex;flex-wrap:wrap;gap:3px;padding:8px;background:var(--cream);border-radius:10px;border:1px solid var(--border);margin-bottom:8px}
+.me-sec{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:100%;margin-top:5px;margin-bottom:2px}
+.me-sec:first-child{margin-top:0}
+.me-btn{padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:14px;cursor:pointer;font-family:inherit;line-height:1;min-width:34px;transition:background .1s;touch-action:manipulation}
+.me-btn:hover{background:#e8dfd0}
+.me-btn:active{transform:scale(.97)}
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAFqTfb7AJJrsbGnc43oNv4POodBRh_71Q",
+  authDomain: "riyaztest-4a12b.firebaseapp.com",
+  projectId: "riyaztest-4a12b",
+  storageBucket: "riyaztest-4a12b.firebasestorage.app",
+  messagingSenderId: "16216771658",
+  appId: "1:16216771658:web:92f8859034300dbe8faab3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.FB = {
+  async saveAll(data){
+    try{
+      await setDoc(doc(db,'riyaztest','data'), {
+        tests: JSON.stringify(data.tests||[]),
+        emails: JSON.stringify(data.emails||[]),
+        results: JSON.stringify(data.results||[]),
+        ae: data.ae||'',
+        ap: data.ap||'',
+        updatedAt: new Date().toISOString()
+      });
+      return true;
+    }catch(e){ console.error('FB save error:',e); return false; }
+  },
+  async loadAll(){
+    try{
+      const snap = await getDoc(doc(db,'riyaztest','data'));
+      if(!snap.exists()) return null;
+      const d = snap.data();
+      return {
+        tests: JSON.parse(d.tests||'[]'),
+        emails: JSON.parse(d.emails||'[]'),
+        results: JSON.parse(d.results||'[]'),
+        ae: d.ae||'admin@riyaztest.az',
+        ap: d.ap||'admin123'
+      };
+    }catch(e){ console.error('FB load error:',e); return null; }
+  }
+};
+
+window.addEventListener('load', async function(){
+  const fbData = await window.FB.loadAll();
+  if(fbData){
+    localStorage.setItem('rt_tests', JSON.stringify(fbData.tests));
+    localStorage.setItem('rt_emails', JSON.stringify(fbData.emails));
+    localStorage.setItem('rt_results', JSON.stringify(fbData.results));
+    if(fbData.ae) localStorage.setItem('rt_ae', fbData.ae);
+    if(fbData.ap) localStorage.setItem('rt_ap', fbData.ap);
+    // UI yenilə
+    if(typeof renderAdminTests==='function') renderAdminTests();
+    if(typeof renderEmails==='function') renderEmails();
+    if(typeof renderResults==='function') renderResults();
+    if(typeof renderStudentTests==='function') renderStudentTests();
+    console.log('Firebase: '+fbData.tests.length+' test yükləndi');
+  }
+});
+</script>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- NAV -->
+<div id="nav">
+  <div class="logo">Riyaz<span>Test</span></div>
+  <div class="nav-right">
+    <span id="nav-email"></span>
+    <span class="badge" id="nav-badge">Şagird</span>
+    <button class="btn btn-outline btn-sm" onclick="logout()">Çıxış</button>
+  </div>
+</div>
+
+<!-- ═══ LOGIN PAGE ═══ -->
+<div class="page active" id="page-login">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px">
+    <div id="login-box">
+      <div style="font-size:30px;font-weight:900;margin-bottom:4px;letter-spacing:-1px">RiyazTest</div>
+      <div style="color:var(--muted);font-size:14px;margin-bottom:24px">Email ünvanınızı daxil edin</div>
+      <div id="login-err" style="display:none;background:#fff0f0;border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px">Bu email icazəli deyil.</div>
+      <label class="lbl">Email ünvanı</label>
+      <input class="inp" type="email" id="login-email" placeholder="sizin@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn btn-ink btn-full" onclick="doLogin()">Daxil ol →</button>
+      <div style="text-align:center;margin-top:18px;font-size:12px;color:var(--muted)">
+        Müəllim girişi? <span style="color:var(--gold);font-weight:700;cursor:pointer" onclick="openModal('admin-modal')">Admin panel</span>
+      </div>
+      <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--muted)">Demo şagird: test@gmail.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STUDENT PAGE ═══ -->
+<div class="page" id="page-student">
+  <div style="max-width:960px;margin:0 auto;padding:24px 16px">
+    <div style="margin-bottom:20px">
+      <div style="font-size:24px;font-weight:800;margin-bottom:4px">Testlər</div>
+      <div style="color:var(--muted);font-size:14px" id="student-greeting"></div>
+    </div>
+    <div id="student-tests"></div>
+  </div>
+</div>
+
+<!-- ═══ TEST PAGE ═══ -->
+<div class="page" id="page-test">
+  <div style="background:var(--white);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:56px;z-index:50">
+    <div id="test-title" style="font-weight:700;font-size:13px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <div style="flex:1">
+      <div class="prog-bar"><div class="prog-fill" id="test-prog" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;text-align:center" id="test-prog-text"></div>
+    </div>
+    <div id="timer" style="font-family:monospace;font-size:15px;font-weight:600;background:var(--cream);padding:4px 12px;border-radius:8px;white-space:nowrap"></div>
+  </div>
+  <div style="max-width:720px;margin:0 auto;padding:16px" id="test-questions"></div>
+  <div style="text-align:center;padding:16px 0 40px">
+    <button class="btn btn-emerald" onclick="submitTest()" style="padding:13px 36px;font-size:16px">✓ Testi bitir</button>
+  </div>
+</div>
+
+<!-- ═══ RESULT PAGE ═══ -->
+<div class="page" id="page-result">
+  <div style="max-width:720px;margin:0 auto;padding:32px 16px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="position:relative;width:140px;height:140px;margin:0 auto 16px">
+        <svg viewBox="0 0 140 140" width="140" height="140" style="transform:rotate(-90deg)">
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#f0ebe0" stroke-width="12"/>
+          <circle cx="70" cy="70" r="60" fill="none" id="result-arc" stroke="#c9933a" stroke-width="12" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span id="result-score" style="font-size:32px;font-weight:900;line-height:1"></span>
+          <span style="font-size:11px;color:var(--muted)">/100</span>
+        </div>
+      </div>
+      <div id="result-title" style="font-size:22px;font-weight:800;margin-bottom:6px"></div>
+      <div id="result-sub" style="color:var(--muted);font-size:13px;margin-bottom:18px"></div>
+      <div id="result-stats" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:18px"></div>
+      <button class="btn btn-outline" onclick="showPage('page-student');renderStudentTests()">← Testlərə qayıt</button>
+    </div>
+    <div style="font-weight:800;font-size:16px;margin-bottom:12px">Cavabların icmalı</div>
+    <div id="result-review"></div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN PAGE ═══ -->
+<div class="page" id="page-admin">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('tab-tests',this)">📋 Testlər</div>
+    <div class="tab" onclick="switchTab('tab-emails',this)">✉️ Şagirdlər</div>
+    <div class="tab" onclick="switchTab('tab-results',this)">📊 Nəticələr</div>
+    <div class="tab" onclick="switchTab('tab-settings',this)">⚙️ Ayarlar</div>
+  </div>
+  <div style="max-width:920px;margin:0 auto;padding:20px 16px">
+
+    <!-- TESTS TAB -->
+    <div id="tab-tests">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:20px;font-weight:800">Test İdarəetməsi</div>
+          <div style="color:var(--muted);font-size:13px">Testlər əlavə edin, redaktə edin</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" style="border-color:var(--gold);color:var(--gold)" onclick="openModal('word-modal')">📋 Mətndən idxal</button>
+          <button class="btn btn-gold btn-sm" onclick="openNewTestModal()">+ Əl ilə yarat</button>
+        </div>
+      </div>
+      <!-- Word info -->
+      <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:14px;padding:16px;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:26px">🤖</span>
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:700;font-size:14px;color:#92400e;margin-bottom:3px">Word Mətni İdxal</div>
+          <div style="font-size:12px;color:#78350f;line-height:1.5">Word faylını açıb mətni kopyalayın → yapışdırın → sistem sualları özü tapır. API lazım deyil!</div>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="openModal('word-modal')">📄 İndi yüklə</button>
+      </div>
+      <div id="admin-tests-list"></div>
+    </div>
+
+    <!-- EMAILS TAB -->
+    <div id="tab-emails" style="display:none">
+      <div style="font-size:20px;font-weight:800;margin-bottom:4px">Şagird Emailləri</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px">Yalnız icazəli emaillər daxil ola bilər</div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:12px">Yeni email əlavə et</div>
+        <div class="grid2">
+          <div>
+            <label class="lbl">Email *</label>
+            <input class="inp" type="email" id="new-email" placeholder="sagird@email.com" style="margin-bottom:0">
+          </div>
+          <div>
+            <label class="lbl">Ad Soyad</label>
+            <input class="inp" type="text" id="new-name" placeholder="Əli Məmmədov" style="margin-bottom:0">
+          </div>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-emerald btn-sm" onclick="addEmail()">Əlavə et</button></div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:12px">İcazəli emaillər</div>
+        <div id="email-list"></div>
+      </div>
+    </div>
+
+    <!-- RESULTS TAB -->
+    <div id="tab-results" style="display:none">
+      <div style="font-size:20px;font-weight:800;margin-bottom:4px">Nəticələr & Statistika</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px">Bütün şagird nəticələri və diaqramlar</div>
+      
+      <!-- Statistika filteri -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <select id="stat-test-filter" onchange="renderStatCharts()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);outline:none">
+          <option value="">— Bütün testlər —</option>
+        </select>
+        <button onclick="renderStatCharts()" style="padding:8px 14px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">📊 Statistika yenilə</button>
+      </div>
+
+      <!-- Ümumi statistika kartları -->
+      <div id="stat-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px"></div>
+
+      <!-- Diaqramlar -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px" id="stat-charts-row">
+        <!-- Şagird sıralaması -->
+        <div class="card" style="padding:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px">🏆 Şagird Sıralaması</div>
+          <div id="stat-ranking" style="font-size:13px"></div>
+        </div>
+        <!-- Sual çətinliyi -->
+        <div class="card" style="padding:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px">❓ Sual Çətinliyi</div>
+          <div id="stat-question-chart" style="font-size:13px"></div>
+        </div>
+      </div>
+      
+      <!-- Sinif trendi -->
+      <div class="card" style="padding:16px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:12px">📈 Sinif Ortalası Trendi</div>
+        <div id="stat-trend-chart" style="height:120px;display:flex;align-items:flex-end;gap:4px;padding:8px;background:var(--cream);border-radius:8px"></div>
+      </div>
+      <div class="card">
+        <div class="grid2" style="margin-bottom:14px">
+          <div>
+            <label class="lbl">Test üzrə filtr</label>
+            <select class="inp" id="filter-test" onchange="renderResults()" style="margin-bottom:0">
+              <option value="">Bütün testlər</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Şagird axtar</label>
+            <input class="inp" type="text" id="filter-stu" placeholder="Email axtar..." oninput="renderResults()" style="margin-bottom:0">
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr>
+          <th>Şagird</th><th>Test</th><th>Xal</th><th>Düzgün</th><th>Səhv</th><th>Tarix</th>
+        </tr></thead><tbody id="results-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" style="display:none">
+      <div style="font-size:20px;font-weight:800;margin-bottom:16px">Ayarlar</div>
+
+      <!-- Məlumat köçürmə -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px">📤 Məlumatları Köçür</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:14px">Testləri və nəticələri cihazlar arasında köçürmək üçün istifadə edin.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="exportData()" style="padding:10px 18px;background:var(--emerald);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">📥 Yüklə (ixrac)</button>
+          <label style="padding:10px 18px;background:var(--gold);color:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:inline-block">
+            📤 Yüklə (idxal)
+            <input type="file" accept=".json" onchange="importData(this)" style="display:none">
+          </label>
+        </div>
+        <div id="import-msg" style="margin-top:10px;font-size:13px;display:none"></div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:12px">Admin Hesabı</div>
+        <label class="lbl">Admin email</label>
+        <input class="inp" type="email" id="s-email">
+        <label class="lbl">Admin şifrəsi</label>
+        <input class="inp" type="text" id="s-pass">
+        <button class="btn btn-gold btn-sm" onclick="saveSettings()">Saxla</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ ADMIN LOGIN MODAL ═══ -->
+<div class="overlay" id="admin-modal">
+  <div class="modal" style="max-width:400px">
+    <div style="font-size:18px;font-weight:800;margin-bottom:20px">🔐 Admin Girişi</div>
+    <label class="lbl">Admin email</label>
+    <input class="inp" type="email" id="am-email" placeholder="admin@riyaztest.az">
+    <label class="lbl">Şifrə</label>
+    <input class="inp" type="password" id="am-pass" placeholder="şifrə">
+    <div id="am-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px">Email və ya şifrə yanlışdır.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-gold" style="flex:1" onclick="doAdminLogin()">Daxil ol</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal('admin-modal')">Ləğv et</button>
+    </div>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">admin@riyaztest.az / admin123</div>
+  </div>
+</div>
+
+<!-- ═══ WORD/TEXT IMPORT MODAL ═══ -->
+<div class="overlay" id="word-modal">
+  <div class="modal" style="max-width:620px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📥</div>
+      <div>
+        <div style="font-size:18px;font-weight:800">Test İdxal</div>
+        <div style="font-size:12px;color:var(--muted)">JSON faylı və ya mətn yapışdırma</div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="word-step1">
+
+      <!-- JSON import (from Python script) -->
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:16px;margin-bottom:14px">
+        <div style="font-weight:700;font-size:14px;color:#166534;margin-bottom:8px">✅ Python skripti ilə (şəkilli suallar daxil)</div>
+        <div style="font-size:12px;color:#166534;line-height:1.7;margin-bottom:10px">
+          1. <b>docx_to_test.py</b> skriptini işlədin<br>
+          2. Nəticə JSON faylını aşağıya yükləyin
+        </div>
+        <label for="json-file-input" style="display:block;cursor:pointer">
+          <div style="border:2px dashed #86efac;border-radius:10px;padding:16px;text-align:center;background:#f8fff8" id="json-upload-zone">
+            <div id="json-upload-content">
+              <div style="font-size:28px;margin-bottom:6px">📂</div>
+              <div style="font-weight:700;font-size:14px;margin-bottom:4px">JSON faylı seçin</div>
+              <div style="font-size:12px;color:var(--muted)">docx_to_test.py tərəfindən yaradılmış *_test.json</div>
+            </div>
+          </div>
+        </label>
+        <input type="file" id="json-file-input" accept=".json" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0" onchange="onJsonSelected(this)">
+        <div id="json-err" style="display:none;color:var(--red);font-size:13px;margin-top:8px"></div>
+      </div>
+
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:12px;color:var(--muted);font-weight:600">VƏ YA</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <!-- Text paste -->
+      <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:14px;margin-bottom:10px">
+        <div style="font-weight:700;font-size:13px;color:#92400e;margin-bottom:6px">📋 Mətn yapışdırma (şəkilsiz)</div>
+        <div style="font-size:12px;color:#78350f;line-height:1.6">Word → Ctrl+A → Ctrl+C → aşağıya yapışdırın</div>
+      </div>
+      <textarea id="paste-area" class="inp" rows="5" placeholder="Word-dən kopyaladığınız mətni buraya yapışdırın..." style="resize:vertical;font-size:13px;margin-bottom:8px"></textarea>
+
+      <div id="word-err" style="display:none;background:#fff0f0;border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:10px"></div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="parseText()">📋 Mətni analiz et</button>
+        <button class="btn btn-outline" style="flex:1;justify-content:flex-end" onclick="closeModal('word-modal')">Ləğv et</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Preview -->
+    <div id="word-step2" style="display:none">
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:14px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
+        <span style="font-size:22px">✅</span>
+        <div>
+          <div style="font-weight:700;color:var(--emerald);font-size:14px" id="found-count"></div>
+          <div style="font-size:12px;color:#166534">Parametrləri tənzimləyib idxal edin.</div>
+        </div>
+      </div>
+      <label class="lbl">Test adı *</label>
+      <input class="inp" type="text" id="nt-title" placeholder="Test adı">
+      <div class="grid2">
+        <div>
+          <label class="lbl">Vaxt (dəq, 0=limitsiz)</label>
+          <input class="inp" type="number" id="nt-time" value="0" min="0" style="margin-bottom:0">
+        </div>
+        <div>
+          <label class="lbl">Açıqlama</label>
+          <input class="inp" type="text" id="nt-desc" placeholder="ixtiyari" style="margin-bottom:0">
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px">Tapılmış suallar</div>
+      <div id="preview-questions" style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:16px"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="showWordStep(1)">⬅ Geri</button>
+        <button class="btn btn-emerald" style="flex:1" id="import-btn" onclick="importTest()"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TEST BUILDER MODAL ═══ -->
+<div class="overlay" id="test-modal">
+  <div class="modal" style="max-width:640px">
+    <div id="test-modal-title" style="font-size:18px;font-weight:800;margin-bottom:20px">+ Yeni Test</div>
+    <div class="grid2">
+      <div>
+        <label class="lbl">Test adı *</label>
+        <input class="inp" type="text" id="tb-title" placeholder="məs. Cəbr — Fəsil 3">
+      </div>
+      <div>
+        <label class="lbl">Vaxt (dəq, 0=limitsiz)</label>
+        <input class="inp" type="number" id="tb-time" value="30" min="0">
+      </div>
+    </div>
+    <label class="lbl">Açıqlama</label>
+    <input class="inp" type="text" id="tb-desc" placeholder="ixtiyari">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-weight:700" id="q-count-label">Suallar (0)</div>
+      <button class="btn btn-outline btn-sm" onclick="addQBuilder()">+ Sual əlavə et</button>
+    </div>
+    <div id="q-builder-list"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-emerald" style="flex:1" onclick="saveTest()">💾 Saxla</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal('test-modal')">Ləğv et</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ DATA ═══
+const SK={emails:'rt_emails',tests:'rt_tests',results:'rt_results',ae:'rt_admin_email',ap:'rt_admin_pass'};
+function ld(){return{emails:JSON.parse(localStorage.getItem(SK.emails)||'[]'),tests:JSON.parse(localStorage.getItem(SK.tests)||'[]'),results:JSON.parse(localStorage.getItem(SK.results)||'[]'),ae:localStorage.getItem(SK.ae)||'admin@riyaztest.az',ap:localStorage.getItem(SK.ap)||'admin123'};}
+function sv(k,v){
+  localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+  // Firebase-ə sync et (debounce ilə - çox tez-tez yazmamaq üçün)
+  clearTimeout(window._fbSyncTimer);
+  window._fbSyncTimer = setTimeout(function(){
+    if(window.FB){
+      var d = ld();
+      window.FB.saveAll({
+        tests: d.tests,
+        emails: d.emails,
+        results: d.results,
+        ae: localStorage.getItem('rt_ae')||'',
+        ap: localStorage.getItem('rt_ap')||''
+      }).then(function(ok){
+        if(ok) console.log('Firebase sync OK');
+      });
+    }
+  }, 1000);
+}
+
+// Seed demo data
+(function(){
+  const d=ld();
+  if(!d.tests.length)sv(SK.tests,[{id:'demo1',title:'Nümunə Test — Cəbr',desc:'Kvadrat tənliklər',timeLimit:10,active:true,createdAt:new Date().toISOString(),questions:[
+    {id:'q1',type:'mcq',text:'x² - 5x + 6 = 0 tənliyinin kökləri?',options:['x=1,x=6','x=2,x=3','x=-2,x=-3','x=0,x=5'],correct:1},
+    {id:'q2',type:'mcq',text:'(a+b)² nəyə bərabərdir?',options:['a²+b²','a²+2ab+b²','a²-2ab+b²','2a+2b'],correct:1},
+    {id:'q3',type:'open',text:'√144 nəyə bərabərdir?',answer:'12'},
+    {id:'q4',type:'mcq',text:'3x = 18 olarsa, x = ?',options:['3','4','6','9'],correct:2},
+  ]}]);
+  if(!d.emails.length)sv(SK.emails,[{email:'test@gmail.com',name:'Demo Şagird'}]);
+})();
+
+// ═══ UI HELPERS ═══
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  t.style.background=type==='success'?'#2d6a4f':type==='error'?'#c1121f':'#0f0e0c';
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.display='none',3500);
+}
+
+// ═══ STATİSTİKA ═══
+function renderStatCharts(){
+  var d=ld();
+  var testFilter=document.getElementById('stat-test-filter');
+  
+  // Test filter seçimlərini yenilə
+  var tests={};
+  d.results.forEach(function(r){ tests[r.testId]=r.testTitle; });
+  var curVal=testFilter.value;
+  testFilter.innerHTML='<option value="">— Bütün testlər —</option>';
+  Object.keys(tests).forEach(function(tid){
+    var opt=document.createElement('option');
+    opt.value=tid; opt.textContent=tests[tid];
+    if(tid===curVal) opt.selected=true;
+    testFilter.appendChild(opt);
+  });
+
+  var filterId=testFilter.value;
+  var results=filterId?d.results.filter(function(r){return r.testId===filterId;}):d.results;
+
+  if(results.length===0){
+    document.getElementById('stat-cards').innerHTML='<div style="color:var(--muted);font-size:13px">Hələ nəticə yoxdur.</div>';
+    document.getElementById('stat-ranking').innerHTML='';
+    document.getElementById('stat-question-chart').innerHTML='';
+    document.getElementById('stat-trend-chart').innerHTML='';
+    return;
+  }
+
+  // ── Ümumi kartlar ──
+  var avg=Math.round(results.reduce(function(s,r){return s+r.score;},0)/results.length);
+  var best=results.reduce(function(a,b){return a.score>b.score?a:b;});
+  var worst=results.reduce(function(a,b){return a.score<b.score?a:b;});
+  var uniq={}; results.forEach(function(r){uniq[r.email]=1;});
+  
+  document.getElementById('stat-cards').innerHTML=[
+    {v:results.length,l:'Cəhd sayı',c:'#1d3557'},
+    {v:Object.keys(uniq).length,l:'Şagird sayı',c:'#2d6a4f'},
+    {v:avg+'%',l:'Ortalama',c:'#c9933a'},
+    {v:best.score+'%',l:'Ən yüksək',c:'#2d6a4f'},
+    {v:worst.score+'%',l:'Ən aşağı',c:'#c1121f'},
+  ].map(function(s){
+    return '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:14px;text-align:center">'
+      +'<div style="font-size:24px;font-weight:800;color:'+s.c+'">'+s.v+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+s.l+'</div></div>';
+  }).join('');
+
+  // ── Şagird sıralaması ──
+  var byEmail={};
+  results.forEach(function(r){
+    if(!byEmail[r.email]||r.score>byEmail[r.email].score) byEmail[r.email]=r;
+  });
+  var ranked=Object.values(byEmail).sort(function(a,b){return b.score-a.score;});
+  
+  document.getElementById('stat-ranking').innerHTML=ranked.map(function(r,i){
+    var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    var barW=r.score;
+    var c=r.score>=70?'#2d6a4f':r.score>=50?'#c9933a':'#c1121f';
+    return '<div style="margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+      +'<span style="font-size:12px">'+medal+' '+(i+1)+'. '+(r.name||r.email)+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:'+c+'">'+r.score+'%</span></div>'
+      +'<div style="background:var(--cream);border-radius:4px;height:8px;overflow:hidden">'
+      +'<div style="background:'+c+';height:100%;width:'+barW+'%;border-radius:4px;transition:width .3s"></div>'
+      +'</div></div>';
+  }).join('');
+
+  // ── Sual çətinliyi ──
+  var qStats={};
+  results.forEach(function(r){
+    if(!r.review) return;
+    r.review.forEach(function(rv,i){
+      var key='S'+(i+1);
+      if(!qStats[key]) qStats[key]={total:0,wrong:0};
+      qStats[key].total++;
+      if(rv.isCorrect===false) qStats[key].wrong++;
+    });
+  });
+  
+  var qArr=Object.keys(qStats).map(function(k){
+    return {k:k,pct:Math.round(qStats[k].wrong/qStats[k].total*100)};
+  }).sort(function(a,b){return b.pct-a.pct;});
+  
+  var maxPct=qArr.length>0?qArr[0].pct:1;
+  document.getElementById('stat-question-chart').innerHTML=
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Səhv edilmə faizi (çoxdan aza)</div>'
+    +qArr.map(function(q){
+      var c=q.pct>=60?'#c1121f':q.pct>=30?'#c9933a':'#2d6a4f';
+      return '<div style="margin-bottom:6px">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px">'
+        +'<span style="font-size:11px">'+q.k+'</span>'
+        +'<span style="font-size:11px;font-weight:700;color:'+c+'">'+q.pct+'%</span></div>'
+        +'<div style="background:var(--cream);border-radius:3px;height:6px">'
+        +'<div style="background:'+c+';height:100%;width:'+q.pct+'%;border-radius:3px"></div>'
+        +'</div></div>';
+    }).join('')
+    +(qArr.length>0?'<div style="margin-top:10px;font-size:11px;color:var(--muted)">⚠️ Ən çətin: <b>'+qArr[0].k+'</b> ('+qArr[0].pct+'% səhv)</div>':'');
+
+  // ── Sinif trendi ──
+  var byDate={};
+  results.forEach(function(r){
+    var day=r.date?r.date.substring(0,10):'?';
+    if(!byDate[day]) byDate[day]={sum:0,cnt:0};
+    byDate[day].sum+=r.score; byDate[day].cnt++;
+  });
+  var days=Object.keys(byDate).sort();
+  var dayAvgs=days.map(function(d){return{d:d.substring(5),v:Math.round(byDate[d].sum/byDate[d].cnt)};});
+  var maxV=Math.max.apply(null,dayAvgs.map(function(x){return x.v;}))||1;
+  
+  document.getElementById('stat-trend-chart').innerHTML=
+    dayAvgs.map(function(x){
+      var h=Math.max(8,Math.round(x.v/100*100));
+      var c=x.v>=70?'#2d6a4f':x.v>=50?'#c9933a':'#c1121f';
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">'
+        +'<div style="font-size:9px;color:var(--muted)">'+x.v+'%</div>'
+        +'<div style="width:100%;background:'+c+';border-radius:4px 4px 0 0;height:'+h+'px;max-width:40px;margin:0 auto"></div>'
+        +'<div style="font-size:9px;color:var(--muted)">'+x.d+'</div>'
+        +'</div>';
+    }).join('')
+    +(dayAvgs.length===0?'<div style="color:var(--muted);font-size:13px;padding:8px">Məlumat yoxdur</div>':'');
+}
+
+
+function switchTab(id,el){
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).style.display='block';
+  el.classList.add('active');
+  if(id==='tab-results')renderResults();
+  if(id==='tab-emails')renderEmails();
+  if(id==='tab-settings'){const d=ld();document.getElementById('s-email').value=d.ae;document.getElementById('s-pass').value=d.ap;}
+}
+
+// ═══ AUTH ═══
+let currentUser=null,isAdmin=false;
+function doLogin(){
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  const d=ld();const found=d.emails.find(e=>e.email.toLowerCase()===email);
+  if(found){currentUser=found;isAdmin=false;loginOK();showPage('page-student');renderStudentTests();}
+  else document.getElementById('login-err').style.display='block';
+}
+function doAdminLogin(){
+  const email=document.getElementById('am-email').value.trim().toLowerCase();
+  const pass=document.getElementById('am-pass').value;
+  const d=ld();
+  if(email===d.ae.toLowerCase()&&pass===d.ap){
+    currentUser={email:d.ae,name:'Admin'};isAdmin=true;
+    closeModal('admin-modal');loginOK();showPage('page-admin');renderAdminTests();
+  }else document.getElementById('am-err').style.display='block';
+}
+function loginOK(){
+  const nav=document.getElementById('nav');nav.style.display='flex';
+  document.getElementById('nav-email').textContent=currentUser.email;
+  const b=document.getElementById('nav-badge');
+  b.textContent=isAdmin?'Admin':'Şagird';b.className='badge '+(isAdmin?'admin':'student');
+}
+function logout(){
+  currentUser=null;isAdmin=false;
+  clearInterval(timerInterval);
+  document.getElementById('nav').style.display='none';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-err').style.display='none';
+  showPage('page-login');
+}
+
+// ═══ STUDENT ═══
+function renderStudentTests(){
+  const d=ld();
+  document.getElementById('student-greeting').textContent='Salam, '+(currentUser.name||currentUser.email)+'! Test seçin.';
+  const active=d.tests.filter(t=>t.active);
+  const doneIds=d.results.filter(r=>r.email===currentUser.email).map(r=>r.testId);
+  const icons=['📐','📊','🔢','📏','🧮','➗'];
+  const el=document.getElementById('student-tests');
+  if(!active.length){el.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted)"><div style="font-size:48px;margin-bottom:12px;opacity:.3">📋</div><p>Hələlik aktiv test yoxdur.</p></div>';return;}
+  el.innerHTML=active.map((t,i)=>{
+    const done=doneIds.includes(t.id);
+    const prev=d.results.find(r=>r.testId===t.id&&r.email===currentUser.email);
+    return`<div class="test-card" onclick="${done&&prev?`showPrevResult('${t.id}')`:``}${!done?`startTest('${t.id}')`:``}">
+      <div style="position:absolute;top:14px;right:14px;background:${done?'#dcfce7':'var(--cream)'};color:${done?'var(--emerald)':'var(--muted)'};padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600">${done?'✓ Bitdi':'Yeni'}</div>
+      <div style="width:44px;height:44px;border-radius:12px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px">${icons[i%icons.length]}</div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:6px">${t.title}</div>
+      <div style="color:var(--muted);font-size:12px;display:flex;gap:12px"><span>📝 ${t.questions.length} sual</span><span>⏱ ${t.timeLimit?t.timeLimit+' dəq':'Limitsiz'}</span></div>
+      ${t.desc?`<div style="margin-top:8px;font-size:12px;color:var(--muted)">${t.desc}</div>`:''}
+      ${done&&prev?`<div style="margin-top:10px;font-size:12px;color:var(--emerald);font-weight:600">Balınız: ${prev.score}% — Nəticəyə bax</div>`:''}
+    </div>`;
+  }).join('');
+}
+function showPrevResult(testId){
+  const d=ld();const r=d.results.find(r=>r.testId===testId&&r.email===currentUser.email);
+  if(r)displayResult(r);
+}
+
+// ═══ TEST ═══
+let activeTest=null,answers={},timerInterval=null,timeLeft=0;
+function startTest(id){
+  const d=ld();activeTest=d.tests.find(t=>t.id===id);answers={};
+  document.getElementById('test-title').textContent=activeTest.title;
+  clearInterval(timerInterval);
+  if(activeTest.timeLimit>0){
+    timeLeft=activeTest.timeLimit*60;updateTimer();
+    timerInterval=setInterval(()=>{timeLeft--;updateTimer();if(timeLeft<=0){clearInterval(timerInterval);doSubmit(true);}},1000);
+  }else document.getElementById('timer').textContent='∞';
+  renderQuestions();
+  showPage('page-test');
+}
+function renderQuestions(){
+  // Hər sual üçün vaxt izləmə
+  window._qStartTimes = {};
+  window._qTimings = {};
+  window._lastQ = null;
+  window._qTimeInterval = setInterval(function(){
+    var cur = window._lastQ;
+    if(cur){
+      if(!window._qStartTimes[cur]) window._qStartTimes[cur] = Date.now();
+      window._qTimings[cur] = (window._qTimings[cur]||0) + 1;
+    }
+  }, 1000);
+  // Scroll ilə hansı sualın görüldüyünü izlə
+  setTimeout(function(){
+    var cards = document.querySelectorAll('[id^="qb_"]');
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          var qId = e.target.id.replace('qb_','');
+          window._lastQ = qId;
+          if(!window._qStartTimes[qId]) window._qStartTimes[qId] = Date.now();
+        }
+      });
+    },{threshold:0.5});
+    cards.forEach(function(c){obs.observe(c);});
+  },200);
+  var el=document.getElementById('test-questions');
+  var items=[];
+  activeTest.questions.forEach(function(q,i){
+    var qHtml='<div class="card" id="qb_'+q.id+'">';
+    qHtml+='<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
+    qHtml+='Sual '+(i+1)+' ';
+    qHtml+='<span style="background:var(--cream);color:var(--muted);padding:2px 8px;border-radius:8px;font-size:10px">';
+    qHtml+=(q.type==='mcq'?'Çoxvariantlı':'Açıq cavab');
+    qHtml+='</span></div>';
+    qHtml+='<div style="font-size:15px;font-weight:500;line-height:1.6;margin-bottom:14px">';
+    if(q.image) qHtml+='<img src="'+q.image+'" style="max-width:100%;border-radius:8px;margin-bottom:10px;display:block">';
+    qHtml+=(q.text||'');
+    qHtml+='</div>';
+    if(q.type==='mcq'){
+      q.options.forEach(function(o,oi){
+        qHtml+='<div class="opt" id="opt_'+q.id+'_'+oi+'" onclick="selectOpt(\''+q.id+'\','+oi+')">';
+        qHtml+='<div class="opt-letter">'+String.fromCharCode(65+oi)+'</div>';
+        qHtml+='<span style="font-size:14px">'+o+'</span></div>';
+      });
+    } else {
+      qHtml+='<div id="me_'+q.id+'" class="me-container"></div>';
+      qHtml+='<input type="hidden" id="ta_'+q.id+'" value="" oninput="setOpen(\''+q.id+'\',this.value)">';
+    }
+    qHtml+='</div>';
+    items.push(qHtml);
+  });
+  el.innerHTML=items.join('');
+  updateProgress();
+  // MathEditor-ları init et
+  setTimeout(function(){
+    activeTest.questions.forEach(function(q){
+      if(q.type==='open'){
+        createMathEditor('me_'+q.id, 'ta_'+q.id);
+      }
+    });
+  }, 50);
+}
+
+
+function selectOpt(qId,idx){
+  answers[qId]=idx;
+  const q=activeTest.questions.find(q=>q.id===qId);
+  q.options.forEach((_,i)=>{
+    const el=document.getElementById(`opt_${qId}_${i}`);
+    if(el)el.className='opt'+(i===idx?' selected':'');
+  });
+  document.getElementById('qb_'+qId).style.borderColor=idx!==undefined?'#52b788':'var(--border)';
+  updateProgress();
+}
+function insertAdminSym(inputId, sym){
+  var inp = typeof inputId === 'string' ? document.getElementById(inputId) : inputId.parentElement.nextElementSibling;
+  if(!inp) return;
+  var start = inp.selectionStart||inp.value.length, end = inp.selectionEnd||inp.value.length;
+  inp.value = inp.value.substring(0,start) + sym + inp.value.substring(end);
+  inp.selectionStart = inp.selectionEnd = start + sym.length;
+  inp.focus();
+  inp.dispatchEvent(new Event('input'));
+}
+
+function openMathKeyboard(targetId) {
+  var ex = document.getElementById('math-kb-modal');
+  if(ex){ex.remove();return;}
+  window._mkTarget = targetId;
+
+  var groups = [
+    {n:'Əsas', s:['=','≠','<','>','≤','≥','≈','≡','±','∞','%']},
+    {n:'Əməliyyat', s:['×','·','÷','+','−','√','∛','∜','!']},
+    {n:'Qüvvət', s:['²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁰','⁻¹','ⁿ']},
+    {n:'Həndəsə', s:['°','∠','⊥','∥','△','▱','◯','⌢','∡','≅','~']},
+    {n:'Ox', s:['→','←','↔','⇒','⇔','↑','↓']},
+    {n:'Yunan', s:['α','β','γ','δ','ε','θ','λ','μ','π','φ','ω','Δ','Σ','Ω','Π']},
+    {n:'Çoxluq', s:['∈','∉','⊂','⊃','∩','∪','∅','∀','∃']},
+    {n:'Kəsr', s:['½','⅓','¼','¾','⅔','⅜','⅝','⅞']},
+    {n:'Cəbr', s:['∑','∏','∫','∂','∇','log','ln','sin','cos','tan','lim']},
+  ];
+
+  var BTN = 'padding:6px 9px;border:1px solid #d8d0c0;border-radius:6px;background:#f0ebe0;font-size:15px;cursor:pointer;line-height:1;min-width:36px;font-family:inherit;margin:0';
+
+  var gHtml = groups.map(function(g){
+    var btns = g.s.map(function(s){
+      return '<button style="'+BTN+'" onclick="mkIns(\''+s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')" >'+s+'</button>';
+    }).join('');
+    return '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#8a8070;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">'+g.n+'</div><div style="display:flex;flex-wrap:wrap;gap:4px">'+btns+'</div></div>';
+  }).join('');
+
+  var fracHtml = '<div style="background:#fdf5e4;border:1.5px solid #c9933a;border-radius:10px;padding:14px;margin-bottom:14px">'
+    +'<div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:10px">KƏSR</div>'
+    +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+    +'<div style="display:flex;flex-direction:column;align-items:center;gap:4px">'
+    +'<input id="mk-num" type="text" placeholder="Pay" style="width:75px;padding:7px;border:1.5px solid #d8d0c0;border-radius:8px;font-size:15px;text-align:center;font-family:inherit;outline:none">'
+    +'<div style="width:75px;border-top:2px solid #333"></div>'
+    +'<input id="mk-den" type="text" placeholder="Məxrəc" style="width:75px;padding:7px;border:1.5px solid #d8d0c0;border-radius:8px;font-size:15px;text-align:center;font-family:inherit;outline:none">'
+    +'</div>'
+    +'<span style="font-size:18px;color:#8a8070">→</span>'
+    +'<div id="mk-prev" style="font-size:18px;min-width:50px;text-align:center">?/?</div>'
+    +'<button onclick="mkFrac()" style="padding:9px 14px;background:#2d6a4f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Əlavə et</button>'
+    +'</div></div>';
+
+  var ov = document.createElement('div');
+  ov.id='math-kb-modal';
+  ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:580px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<div style="font-size:15px;font-weight:700">Riyazi Klaviatura</div>'
+    +'<button onclick="document.getElementById(\'math-kb-modal\').remove()" style="border:none;background:#f0ebe0;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>'
+    +'</div>'
+    + fracHtml + gHtml
+    +'</div>';
+
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+
+  var ni=document.getElementById('mk-num');
+  var di=document.getElementById('mk-den');
+  function upPrev(){
+    var n=ni.value||'?',d=di.value||'?';
+    document.getElementById('mk-prev').innerHTML='<span style="display:inline-flex;flex-direction:column;align-items:center;line-height:1.3"><span>'+n+'</span><span style="border-top:2px solid #333;width:100%;display:block"></span><span>'+d+'</span></span>';
+  }
+  ni.addEventListener('input',upPrev);
+  di.addEventListener('input',upPrev);
+}
+
+window.mkIns = function(s){
+  var ta=document.getElementById(window._mkTarget);
+  if(!ta)return;
+  var st=ta.selectionStart!=null?ta.selectionStart:ta.value.length;
+  var en=ta.selectionEnd!=null?ta.selectionEnd:ta.value.length;
+  ta.value=ta.value.substring(0,st)+s+ta.value.substring(en);
+  ta.selectionStart=ta.selectionEnd=st+s.length;
+  ta.focus();ta.dispatchEvent(new Event('input'));
+};
+
+window.mkFrac = function(){
+  var n=(document.getElementById('mk-num').value||'').trim();
+  var d=(document.getElementById('mk-den').value||'').trim();
+  if(!n||!d){alert('Pay və məxrəci doldurun!');return;}
+  mkIns(n+'/'+d);
+  document.getElementById('mk-num').value='';
+  document.getElementById('mk-den').value='';
+  document.getElementById('mk-prev').innerHTML='?/?';
+};
+
+function insertSymbol(qId, sym){
+  var ta=document.getElementById('ta_'+qId);
+  if(!ta)return;
+  var start=ta.selectionStart, end=ta.selectionEnd;
+  var val=ta.value;
+  ta.value=val.substring(0,start)+sym+val.substring(end);
+  ta.selectionStart=ta.selectionEnd=start+sym.length;
+  ta.focus();
+  setOpen(qId,ta.value);
+}
+function setOpen(qId,val){
+  // MathEditor hidden input-dan da dəyər al
+  var taEl=document.getElementById('ta_'+qId);
+  var realVal=val||(taEl?taEl.value:'');
+  answers[qId]=realVal;
+  var bl=document.getElementById('qb_'+qId);
+  if(bl) bl.style.borderColor=realVal&&realVal.trim()?'#52b788':'var(--border)';
+  updateProgress();
+}
+
+function updateProgress(){
+  const total=activeTest.questions.length;
+  const done=activeTest.questions.filter(q=>{const a=answers[q.id];return a!==undefined&&a!==''&&(typeof a!=='string'||a.trim());}).length;
+  document.getElementById('test-prog').style.width=(done/total*100)+'%';
+  document.getElementById('test-prog-text').textContent=done+'/'+total+' cavablandı';
+}
+function updateTimer(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  const el=document.getElementById('timer');
+  el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  el.style.background=timeLeft<=60?'#fff0f0':'var(--cream)';
+  el.style.color=timeLeft<=60?'var(--red)':'var(--ink)';
+}
+function submitTest(){
+  // MathEditor cavablarını answers-ə yığ
+  activeTest.questions.forEach(function(q){
+    if(q.type==='open'){
+      var taEl=document.getElementById('ta_'+q.id);
+      if(taEl && taEl.value && taEl.value.trim()){
+        answers[q.id]=taEl.value.trim();
+      }
+    }
+  });
+  const un=activeTest.questions.filter(q=>{const a=answers[q.id];return a===undefined||a===''||(typeof a==='string'&&!a.trim());});
+  if(un.length>0&&!confirm(un.length+' sual cavabsız qalıb. Testi bitirmək istəyirsiniz?'))return;
+  doSubmit();
+}
+function doSubmit(auto=false){
+  clearInterval(timerInterval);
+  let correct=0,wrong=0,openCount=0;const review=[];
+  activeTest.questions.forEach(q=>{
+    const a=answers[q.id];
+    if(q.type==='mcq'){
+      const ok=a===q.correct;if(ok)correct++;else wrong++;
+      review.push({q:q.text,type:'mcq',userAns:a!==undefined?q.options[a]:'—',correctAns:q.options[q.correct],isCorrect:ok});
+    }else{
+      openCount++;
+      // MathEditor hidden input-dan da oxu
+      var taEl=document.getElementById('ta_'+q.id);
+      var rawA = (taEl && taEl.value) ? taEl.value : (typeof a==='string'?a:'');
+      const ua=rawA.trim();
+      const ok=ua.toLowerCase()===(q.answer||'').toLowerCase();
+      if(ua){if(ok)correct++;else wrong++;}
+      review.push({q:q.text,type:'open',userAns:ua||'—',correctAns:q.answer||'(Açıq)',isCorrect:ua?ok:null});
+    }
+  });
+  const score=(correct+wrong)>0?Math.round(correct/(correct+wrong)*100):0;
+  // Vaxt məlumatlarını topla
+  clearInterval(window._qTimeInterval||0);
+  const timings = window._qTimings || {};
+  const reviewWithTime = review.map(function(rv,i){
+    var q = activeTest.questions[i];
+    rv.timeSpent = timings[q.id] || 0;
+    return rv;
+  });
+  const totalTime = Object.values(timings).reduce(function(a,b){return a+b;},0);
+  const r={id:'r_'+Date.now(),email:currentUser.email,name:currentUser.name||currentUser.email,testId:activeTest.id,testTitle:activeTest.title,correct,wrong,openCount,score,total:activeTest.questions.length,review:reviewWithTime,totalTime,date:new Date().toISOString()};
+  const d=ld();d.results.push(r);sv(SK.results,d.results);
+  displayResult(r);
+}
+function displayResult(r){
+  // Əvvəlki nəticələri tap (eyni şagird, eyni test)
+  const d=ld();
+  const prev=d.results.filter(function(x){return x.email===r.email&&x.testId===r.testId&&x.id!==r.id;});
+  const lastPrev=prev.length>0?prev[prev.length-1]:null;
+  const trend=lastPrev?(r.score>lastPrev.score?'up':r.score<lastPrev.score?'down':'same'):null;
+  const pct=r.score/100,circ=377,offset=circ-pct*circ;
+  const arc=document.getElementById('result-arc');
+  arc.setAttribute('stroke-dashoffset',offset);
+  arc.setAttribute('stroke',r.score>=60?'#2d6a4f':r.score>=40?'#c9933a':'#c1121f');
+  document.getElementById('result-score').textContent=r.score;
+  const emoji=r.score>=80?'🏆':r.score>=60?'👍':r.score>=40?'💪':'📚';
+  const title=r.score>=80?'Əla nəticə!':r.score>=60?'Yaxşı nəticə':r.score>=40?'Daha çox çalışın':'Öyrənməyə davam edin';
+  document.getElementById('result-title').textContent=emoji+' '+title;
+  document.getElementById('result-sub').textContent=r.testTitle;
+  // Əsas statistika kartları
+  const mins=Math.floor((r.totalTime||0)/60);
+  const secs=(r.totalTime||0)%60;
+  const timeStr=mins>0?mins+'dəq '+secs+'san':secs+'san';
+  const trendHtml=trend==='up'?'<span style="color:#2d6a4f;font-size:12px">▲ Artım</span>':trend==='down'?'<span style="color:#c1121f;font-size:12px">▼ Azalma</span>':trend==='same'?'<span style="color:#c9933a;font-size:12px">→ Eyni</span>':'';
+  document.getElementById('result-stats').innerHTML=
+    [{v:r.correct,l:'Düzgün',c:'#2d6a4f'},{v:r.wrong,l:'Səhv',c:'#c1121f'},{v:r.total,l:'Ümumi',c:'#0f0e0c'},{v:timeStr,l:'Vaxt',c:'#1d3557'}]
+    .map(s=>'<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 20px;min-width:80px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+s.c+'">'+s.v+'</div><div style="font-size:11px;color:var(--muted)">'+s.l+'</div></div>').join('')
+    +(trendHtml?'<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 20px;min-width:80px;text-align:center"><div style="font-size:18px;font-weight:800">'+trendHtml+'</div><div style="font-size:11px;color:var(--muted)">Əvvəlki ilə</div></div>':'');
+  
+  // Sual vaxt diaqramı
+  const timingData=r.review.map(function(rv,i){return{q:i+1,t:rv.timeSpent||0,ok:rv.isCorrect};});
+  const maxT=Math.max.apply(null,timingData.map(function(d){return d.t;}))||1;
+  const barChart=timingData.map(function(d){
+    var h=Math.max(8,Math.round(d.t/maxT*80));
+    var c=d.ok===true?'#2d6a4f':d.ok===false?'#c1121f':'#c9933a';
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">'
+      +'<div style="font-size:9px;color:var(--muted)">'+d.t+'s</div>'
+      +'<div style="width:100%;background:'+c+';border-radius:4px 4px 0 0;height:'+h+'px;max-width:32px;margin:0 auto"></div>'
+      +'<div style="font-size:10px;color:var(--muted)">S'+d.q+'</div>'
+      +'</div>';
+  }).join('');
+  
+  // Dairə diaqramı (SVG)
+  const total2=r.correct+r.wrong;
+  const pctC=total2?r.correct/total2:0;
+  const pctW=total2?r.wrong/total2:0;
+  const r2=40,cx=50,cy=50;
+  function arcPath(start,end,color){
+    if(end-start>=0.9999) return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r2+'" fill="'+color+'"/>';
+    var s=start*Math.PI*2-Math.PI/2, e=end*Math.PI*2-Math.PI/2;
+    var x1=cx+r2*Math.cos(s),y1=cy+r2*Math.sin(s);
+    var x2=cx+r2*Math.cos(e),y2=cy+r2*Math.sin(e);
+    var large=end-start>0.5?1:0;
+    return '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r2+','+r2+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+color+'"/>';
+  }
+  const svgPie=total2>0?
+    '<svg width="100" height="100" viewBox="0 0 100 100">'
+    +arcPath(0,pctC,'#2d6a4f')
+    +arcPath(pctC,pctC+pctW,'#c1121f')
+    +(pctC+pctW<1?arcPath(pctC+pctW,1,'#e9e5d8'):'')
+    +'</svg>':'';
+
+  // Əlavə statistika bölməsi
+  var extraStats=document.getElementById('result-extra');
+  if(!extraStats){
+    extraStats=document.createElement('div');
+    extraStats.id='result-extra';
+    var reviewEl=document.getElementById('result-review');
+    reviewEl.parentNode.insertBefore(extraStats,reviewEl);
+  }
+  extraStats.innerHTML=
+    '<div style="margin:16px 0 8px;font-weight:700;font-size:14px">📊 Ətraflı Statistika</div>'
+    +'<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">'
+    +svgPie
+    +'<div><div style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:12px;height:12px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>Düzgün: '+r.correct+' ('+Math.round(pctC*100)+'%)</div>'
+    +'<div style="font-size:12px;display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:#c1121f;border-radius:2px;display:inline-block"></span>Səhv: '+r.wrong+' ('+Math.round(pctW*100)+'%)</div></div>'
+    +'</div>'
+    +'<div style="font-weight:600;font-size:13px;margin-bottom:8px">⏱ Hər sualda vaxt (saniyə)</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:4px;height:110px;padding:8px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:16px">'+barChart+'</div>'
+    +(lastPrev?'<div style="background:var(--cream);border-radius:10px;padding:12px;font-size:13px">📈 Əvvəlki nəticəniz: <b>'+lastPrev.score+'%</b> → İndi: <b>'+r.score+'%</b> '+trendHtml+'</div>':'');
+  document.getElementById('result-review').innerHTML=r.review.map((rv,i)=>{
+    const lc=rv.type==='open'?'#c9933a':rv.isCorrect?'#2d6a4f':'#c1121f';
+    const icon=rv.type==='open'?'📝':rv.isCorrect?'✓':'✗';
+    return`<div class="review-item ${rv.type==='open'?'open':rv.isCorrect?'correct':'wrong'}">
+      <div style="font-weight:600;margin-bottom:8px;font-size:14px">${i+1}. ${rv.q}</div>
+      <div style="display:flex;gap:16px;font-size:13px;flex-wrap:wrap">
+        <span>${icon} <b style="color:var(--muted)">Cavabınız:</b> <span style="color:${rv.isCorrect===false?'#c1121f':rv.isCorrect?'#2d6a4f':'#0f0e0c'}">${rv.userAns}</span></span>
+        ${rv.type==='mcq'&&!rv.isCorrect?`<span>✓ <b style="color:var(--muted)">Düzgün:</b> <span style="color:#2d6a4f">${rv.correctAns}</span></span>`:''}
+        ${rv.type==='open'?`<span><b style="color:var(--muted)">Gözlənilən:</b> <span style="color:#2d6a4f">${rv.correctAns}</span></span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  showPage('page-result');
+}
+
+// ═══ WORD UPLOAD + IMAGE EXTRACTION ═══
+let selectedFile=null, parsedData=null;
+
+function showWordErr(msg){const el=document.getElementById('word-err');el.textContent=msg;el.style.display=msg?'block':'none';}
+function showWordStep(n){
+  document.getElementById('word-step1').style.display=n===1?'block':'none';
+  document.getElementById('word-step2').style.display=n===2?'block':'none';
+}
+
+function onJsonSelected(input){
+  const f=input.files&&input.files[0];
+  if(!f)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.questions||!data.questions.length){
+        document.getElementById('json-err').textContent='JSON faylinda sual tapilmadi.';
+        document.getElementById('json-err').style.display='block';return;
+      }
+      document.getElementById('json-err').style.display='none';
+      document.getElementById('json-upload-content').innerHTML='<div style="font-size:28px;margin-bottom:6px">&#x2705;</div><div style="font-weight:700;font-size:14px;color:var(--emerald)">'+f.name+'</div><div style="font-size:12px;color:var(--muted)">'+data.questions.length+' sual tapildi</div>';
+      showParsedPreview(data.questions, data.title||f.name.replace(/_test\.json$/,''));
+    }catch(err){
+      document.getElementById('json-err').textContent='Yanlish JSON: '+err.message;
+      document.getElementById('json-err').style.display='block';
+    }
+  };
+  reader.readAsText(f,'utf-8');
+}
+function showWordErr(msg){const el=document.getElementById('word-err');el.textContent=msg;el.style.display=msg?'block':'none';}
+function showWordStep(n){
+  document.getElementById('word-step1').style.display=n===1?'block':'none';
+  document.getElementById('word-step2').style.display=n===2?'block':'none';
+}
+function showParsedPreview(questions, defaultTitle){
+  parsedData={title:defaultTitle,questions};
+  const imgCount=questions.filter(function(q){return q.image;}).length;
+  document.getElementById('found-count').textContent=questions.length+' sual tapildi'+(imgCount?' ('+imgCount+' shekilli)':'');
+  document.getElementById('nt-title').value=defaultTitle||'';
+  document.getElementById('import-btn').textContent=''+questions.length+' Suali Idxal Et';
+  var html='';
+  questions.forEach(function(q,i){
+    html+='<div style="padding:12px 16px;'+(i<questions.length-1?'border-bottom:1px solid var(--border)':'')+'">';
+    html+='<div style="display:flex;gap:8px;align-items:flex-start">';
+    html+='<span style="background:var(--cream);color:var(--muted);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;flex-shrink:0">#'+(i+1)+'</span>';
+    html+='<span style="background:'+(q.type==='mcq'?'#dbeafe':'#fef9c3')+';color:'+(q.type==='mcq'?'#1e40af':'#854d0e')+';border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;flex-shrink:0">'+(q.type==='mcq'?'MCQ':'Aqiq')+'</span>';
+    if(q.image) html+='<span style="background:#f3e8ff;color:#7c3aed;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;flex-shrink:0">Shekil</span>';
+    html+='<div style="flex:1;min-width:0">';
+    if(q.image) html+='<img src="'+q.image+'" style="max-width:100%;max-height:100px;border-radius:6px;margin-bottom:4px;display:block">';
+    html+='<div style="font-size:13px;font-weight:500;line-height:1.4">'+(q.text||'')+'</div>';
+    html+='</div></div></div>';
+  });
+  document.getElementById('preview-questions').innerHTML=html;
+  showWordStep(2);
+}
+function importTest(){
+  if(!parsedData)return;
+  var title=document.getElementById('nt-title').value.trim()||parsedData.title||'Test';
+  var d=ld();
+  d.tests.push({id:'test_'+Date.now(),title:title,timeLimit:Number(document.getElementById('nt-time').value)||0,desc:document.getElementById('nt-desc').value,active:true,createdAt:new Date().toISOString(),questions:parsedData.questions.map(function(q,i){return Object.assign({},q,{id:'q_'+Date.now()+'_'+i});})});
+  sv(SK.tests,d.tests);closeModal('word-modal');renderAdminTests();
+  showToast(parsedData.questions.length+' sual idxal edildi!','success');
+  parsedData=null;
+  document.getElementById('paste-area').value='';
+  document.getElementById('json-file-input').value='';
+  document.getElementById('json-upload-content').innerHTML='<div style="font-size:28px;margin-bottom:6px">Fayl sec</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">JSON faylinii secin</div>';
+  showWordStep(1);showWordErr('');
+}
+
+// ═══ ADMIN: TESTS ═══
+let editingId=null,builderQs=[];
+function renderAdminTests(){
+  const d=ld();const el=document.getElementById('admin-tests-list');
+  if(!d.tests.length){el.innerHTML='<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:40px;margin-bottom:12px;opacity:.3">📋</div><p>Hələlik test yoxdur.</p></div>';return;}
+  el.innerHTML=d.tests.map(t=>`
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px">${t.title}</div>
+          <div style="color:var(--muted);font-size:12px">${t.questions.length} sual · ${t.timeLimit||'∞'} dəq${t.desc?' · '+t.desc:''}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer">
+            <input type="checkbox" ${t.active?'checked':''} onchange="toggleTest('${t.id}',this.checked)" style="accent-color:var(--emerald);width:14px;height:14px"> Aktiv
+          </label>
+          <button class="btn btn-outline btn-sm" onclick="editTest('${t.id}')">✏️ Redaktə</button>
+          <button class="btn btn-red btn-sm" onclick="deleteTest('${t.id}')">🗑 Sil</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function toggleTest(id,active){const d=ld();const t=d.tests.find(t=>t.id===id);if(t){t.active=active;sv(SK.tests,d.tests);}}
+function deleteTest(id){if(!confirm('Bu testi silmək istəyirsiniz?'))return;const d=ld();sv(SK.tests,d.tests.filter(t=>t.id!==id));renderAdminTests();showToast('Test silindi');}
+function openNewTestModal(){
+  editingId=null;builderQs=[];
+  document.getElementById('tb-title').value='';document.getElementById('tb-time').value=30;document.getElementById('tb-desc').value='';
+  document.getElementById('test-modal-title').textContent='+ Yeni Test';
+  document.getElementById('q-builder-list').innerHTML='';
+  document.getElementById('q-count-label').textContent='Suallar (0)';
+  addQBuilder();openModal('test-modal');
+}
+function editTest(id){
+  const d=ld();const t=d.tests.find(t=>t.id===id);
+  editingId=id;builderQs=JSON.parse(JSON.stringify(t.questions));
+  document.getElementById('tb-title').value=t.title;document.getElementById('tb-time').value=t.timeLimit;document.getElementById('tb-desc').value=t.desc||'';
+  document.getElementById('test-modal-title').textContent='✏️ Test Redaktəsi';
+  renderQBuilder();openModal('test-modal');
+}
+function renderQBuilder(){
+  document.getElementById('q-builder-list').innerHTML='';
+  builderQs.forEach(q=>appendQCard(q));
+  document.getElementById('q-count-label').textContent='Suallar ('+builderQs.length+')';
+}
+function addQBuilder(){
+  const q={id:'q_'+Date.now(),type:'mcq',text:'',options:['','','',''],correct:0,answer:''};
+  builderQs.push(q);appendQCard(q);
+  document.getElementById('q-count-label').textContent='Suallar ('+builderQs.length+')';
+}
+function appendQCard(q){
+  const idx=builderQs.indexOf(q);
+  const div=document.createElement('div');div.className='qb';div.id='qcard_'+q.id;
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-weight:700;color:var(--gold);font-size:13px">Sual ${idx+1}</span>
+      <div style="display:flex;gap:8px">
+        <select onchange="changeQType('${q.id}',this.value)" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--white);outline:none">
+          <option value="mcq" ${q.type==='mcq'?'selected':''}>Çoxvariantlı</option>
+          <option value="open" ${q.type==='open'?'selected':''}>Açıq cavab</option>
+        </select>
+        <button class="btn btn-red btn-sm" onclick="removeQ('${q.id}')">✕</button>
+      </div>
+    </div>
+    <label class="lbl">Sualın mətni</label>
+    ${q.image?`<img src="${q.image}" style="max-width:100%;max-height:120px;border-radius:8px;margin-bottom:8px;display:block;border:1px solid var(--border)">`:''}
+    <textarea class="inp" rows="2" placeholder="Sualı daxil edin..." oninput="updateQField('${q.id}','text',this.value)" style="resize:vertical">${q.text}</textarea>
+    <div id="qbody_${q.id}">${buildQBody(q)}</div>`;
+  document.getElementById('q-builder-list').appendChild(div);
+  if(q.type==='open'){
+    setTimeout(function(){
+      createMathEditor('me_admin_'+q.id,'ans_'+q.id);
+    },50);
+  }
+}
+function buildQBody(q){
+  if(q.type==='mcq')return`<div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">● Düzgün cavabı seçin</div>${q.options.map((o,oi)=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <input type="radio" name="c_${q.id}" ${q.correct===oi?'checked':''} onchange="updateQField('${q.id}','correct',${oi})" style="accent-color:var(--gold);width:14px;height:14px;cursor:pointer">
+      <span style="font-family:monospace;font-weight:700;width:20px;color:var(--muted);font-size:12px">${String.fromCharCode(65+oi)}</span>
+      <input class="inp" value="${o}" placeholder="Variant ${String.fromCharCode(65+oi)}" oninput="updateOpt('${q.id}',${oi},this.value)" style="flex:1;margin-bottom:0;padding:7px 10px">
+    </div>`).join('')}</div>`;
+  return`<div><label class="lbl">Gözlənilən cavab</label><div style="margin-bottom:8px"><div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:5px">🔢 Riyazi simvollar:</div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px"><span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-right:6px;min-width:55px">Əsas</span><button type="button" onclick="insertAdminSym('ans_${q.id}','√')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">√</button><button type="button" onclick="insertAdminSym('ans_${q.id}','²')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">²</button><button type="button" onclick="insertAdminSym('ans_${q.id}','³')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">³</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⁴')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⁴</button><button type="button" onclick="insertAdminSym('ans_${q.id}','π')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">π</button><button type="button" onclick="insertAdminSym('ans_${q.id}','±')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">±</button><button type="button" onclick="insertAdminSym('ans_${q.id}','×')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">×</button><button type="button" onclick="insertAdminSym('ans_${q.id}','÷')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">÷</button><button type="button" onclick="insertAdminSym('ans_${q.id}','≠')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">≠</button><button type="button" onclick="insertAdminSym('ans_${q.id}','≤')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">≤</button><button type="button" onclick="insertAdminSym('ans_${q.id}','≥')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">≥</button><button type="button" onclick="insertAdminSym('ans_${q.id}','≈')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">≈</button><button type="button" onclick="insertAdminSym('ans_${q.id}','≡')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">≡</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∞')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∞</button></div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px"><span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-right:6px;min-width:55px">Həndəsə</span><button type="button" onclick="insertAdminSym('ans_${q.id}','°')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">°</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∠')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∠</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⊥')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⊥</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∥')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∥</button><button type="button" onclick="insertAdminSym('ans_${q.id}','△')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">△</button><button type="button" onclick="insertAdminSym('ans_${q.id}','▱')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">▱</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⌢')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⌢</button><button type="button" onclick="insertAdminSym('ans_${q.id}','→')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">→</button><button type="button" onclick="insertAdminSym('ans_${q.id}','↔')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">↔</button></div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px"><span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-right:6px;min-width:55px">Kəsr</span><button type="button" onclick="openMathKeyboard('ans_${q.id}')" style="padding:5px 12px;border:1.5px solid var(--gold);border-radius:6px;background:#fdf5e4;font-size:14px;cursor:pointer;font-weight:700;color:var(--gold);touch-action:manipulation;margin-right:4px">∑ Klaviatura</button><button type="button" onclick="insertAdminSym('ans_${q.id}','½')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">½</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⅓')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⅓</button><button type="button" onclick="insertAdminSym('ans_${q.id}','¼')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">¼</button><button type="button" onclick="insertAdminSym('ans_${q.id}','¾')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">¾</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⅔')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⅔</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⅜')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⅜</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⅝')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⅝</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⅞')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⅞</button></div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px"><span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-right:6px;min-width:55px">Yunan</span><button type="button" onclick="insertAdminSym('ans_${q.id}','α')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">α</button><button type="button" onclick="insertAdminSym('ans_${q.id}','β')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">β</button><button type="button" onclick="insertAdminSym('ans_${q.id}','γ')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">γ</button><button type="button" onclick="insertAdminSym('ans_${q.id}','θ')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">θ</button><button type="button" onclick="insertAdminSym('ans_${q.id}','φ')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">φ</button><button type="button" onclick="insertAdminSym('ans_${q.id}','λ')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">λ</button><button type="button" onclick="insertAdminSym('ans_${q.id}','Δ')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">Δ</button><button type="button" onclick="insertAdminSym('ans_${q.id}','Σ')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">Σ</button></div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px"><span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-right:6px;min-width:55px">Çoxluq</span><button type="button" onclick="insertAdminSym('ans_${q.id}','∈')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∈</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∉')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∉</button><button type="button" onclick="insertAdminSym('ans_${q.id}','⊂')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">⊂</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∩')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∩</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∪')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∪</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∑')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∑</button><button type="button" onclick="insertAdminSym('ans_${q.id}','∏')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--cream);font-size:15px;cursor:pointer;line-height:1;touch-action:manipulation;min-width:34px">∏</button></div></div></div></div><div id="me_admin_${q.id}" class="me-container"></div><input type="hidden" id="ans_${q.id}" value="${q.answer||''}"></div>`;
+}
+function changeQType(id,type){
+  const q=builderQs.find(q=>q.id===id);if(!q)return;
+  q.type=type;document.getElementById('qbody_'+id).innerHTML=buildQBody(q);
+  if(type==='open'){
+    setTimeout(function(){createMathEditor('me_admin_'+id,'ans_'+id);},50);
+  }
+}
+function updateQField(id,field,val){const q=builderQs.find(q=>q.id===id);if(q)q[field]=typeof val==='string'?val:Number(val);}
+function updateOpt(id,idx,val){const q=builderQs.find(q=>q.id===id);if(q)q.options[idx]=val;}
+function removeQ(id){
+  builderQs=builderQs.filter(q=>q.id!==id);
+  const el=document.getElementById('qcard_'+id);if(el)el.remove();
+  document.getElementById('q-count-label').textContent='Suallar ('+builderQs.length+')';
+}
+function saveTest(){
+  const title=document.getElementById('tb-title').value.trim();
+  if(!title){showToast('Test adı daxil edin','error');return;}
+  if(!builderQs.length){showToast('Ən azı bir sual əlavə edin','error');return;}
+  for(const q of builderQs){
+    if(!q.text.trim()){showToast('Bütün sualların mətnini doldurun','error');return;}
+    if(q.type==='mcq'&&q.options.some(o=>!o.trim())){showToast('Bütün variantları doldurun','error');return;}
+  }
+  const d=ld();
+  if(editingId){const idx=d.tests.findIndex(t=>t.id===editingId);if(idx>-1)d.tests[idx]={...d.tests[idx],title,timeLimit:Number(document.getElementById('tb-time').value)||0,desc:document.getElementById('tb-desc').value,questions:builderQs};}
+  else d.tests.push({id:'test_'+Date.now(),title,timeLimit:Number(document.getElementById('tb-time').value)||0,desc:document.getElementById('tb-desc').value,active:true,createdAt:new Date().toISOString(),questions:builderQs});
+  sv(SK.tests,d.tests);closeModal('test-modal');renderAdminTests();
+  showToast(editingId?'Test yeniləndi ✓':'Test əlavə edildi ✓','success');
+}
+
+// ═══ ADMIN: EMAILS ═══
+function renderEmails(){
+  const d=ld();const el=document.getElementById('email-list');
+  if(!d.emails.length){el.innerHTML='<div style="color:var(--muted);text-align:center;padding:16px">Hələlik email yoxdur.</div>';return;}
+  el.innerHTML=d.emails.map(e=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--paper);border-radius:8px;margin-bottom:8px">
+      <div>
+        <div style="font-family:monospace;font-size:13px">${e.email}</div>
+        ${e.name?`<div style="font-size:11px;color:var(--muted)">${e.name}</div>`:''}
+      </div>
+      <button class="btn btn-red btn-sm" onclick="removeEmail('${e.email}')">Sil</button>
+    </div>`).join('');
+}
+function addEmail(){
+  const em=document.getElementById('new-email').value.trim().toLowerCase();
+  const name=document.getElementById('new-name').value.trim();
+  if(!em.includes('@')){showToast('Düzgün email daxil edin','error');return;}
+  const d=ld();
+  if(d.emails.find(e=>e.email===em)){showToast('Bu email artıq var','error');return;}
+  d.emails.push({email:em,name});sv(SK.emails,d.emails);
+  document.getElementById('new-email').value='';document.getElementById('new-name').value='';
+  renderEmails();showToast('Email əlavə edildi ✓','success');
+}
+function removeEmail(em){
+  if(!confirm(em+' silinsin?'))return;
+  const d=ld();sv(SK.emails,d.emails.filter(e=>e.email!==em));renderEmails();showToast('Silindi');
+}
+
+// ═══ ADMIN: RESULTS ═══
+function renderResults(){
+  const d=ld();
+  const sel=document.getElementById('filter-test');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Bütün testlər</option>'+d.tests.map(t=>`<option value="${t.id}" ${cur===t.id?'selected':''}>${t.title}</option>`).join('');
+  const fTest=sel.value,fStu=document.getElementById('filter-stu').value.toLowerCase();
+  const res=d.results.filter(r=>(!fTest||r.testId===fTest)&&(!fStu||r.email.toLowerCase().includes(fStu)||(r.name||'').toLowerCase().includes(fStu))).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tbody=document.getElementById('results-tbody');
+  if(!res.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Nəticə yoxdur</td></tr>';return;}
+  tbody.innerHTML=res.map(r=>{
+    const sc=r.score>=70?{bg:'#dcfce7',c:'#166534'}:r.score>=40?{bg:'#fef9c3',c:'#854d0e'}:{bg:'#fee2e2',c:'#991b1b'};
+    const dt=new Date(r.date).toLocaleDateString('az-AZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+    return`<tr>
+      <td><div style="font-weight:600">${r.name}</div><div style="font-size:11px;color:var(--muted)">${r.email}</div></td>
+      <td>${r.testTitle}</td>
+      <td><span class="score-pill" style="background:${sc.bg};color:${sc.c}">${r.score}%</span></td>
+      <td style="color:#2d6a4f;font-weight:700">${r.correct}</td>
+      <td style="color:#c1121f;font-weight:700">${r.wrong}</td>
+      <td style="font-size:11px;color:var(--muted)">${dt}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+
+// ═══ MATH EDITOR ENGINE ═══
+function MathEditor(fieldEl, onChangeCallback) {
+  var self = this;
+  function TextNode(v){ this.t='text'; this.v=v; }
+  function FracNode(){ this.t='frac'; this.num=[]; this.den=[]; }
+  function SqrtNode(n){ this.t='sqrt'; this.n=n||1; this.body=[]; }
+  function PowNode(){ this.t='pow'; this.base=[]; this.exp=[]; }
+  function SubNode(){ this.t='sub'; this.base=[]; this.idx=[]; }
+  function AbsNode(){ this.t='abs'; this.body=[]; }
+
+  var root=[];
+  var cur={list:root,pos:0,parent:null,field:null};
+
+  function renderNode(n){
+    var d;
+    if(n.t==='text'){d=document.createElement('span');d.className='mtext';d.textContent=n.v;return d;}
+    if(n.t==='frac'){
+      d=document.createElement('span');d.className='mfrac';
+      var num=document.createElement('span');num.className='mfrac-num';renderList(n.num,num);
+      var den=document.createElement('span');den.className='mfrac-den';renderList(n.den,den);
+      d.appendChild(num);d.appendChild(den);return d;
+    }
+    if(n.t==='sqrt'){
+      d=document.createElement('span');d.className='msqrt';
+      var sign=document.createElement('span');sign.className='msqrt-sign';
+      sign.textContent=n.n===3?'∛':n.n===4?'∜':'√';
+      var body=document.createElement('span');body.className='msqrt-body';renderList(n.body,body);
+      d.appendChild(sign);d.appendChild(body);return d;
+    }
+    if(n.t==='pow'){
+      d=document.createElement('span');d.className='mpow';
+      var base=document.createElement('span');renderList(n.base,base);
+      var exp=document.createElement('span');exp.className='mpow-exp';renderList(n.exp,exp);
+      d.appendChild(base);d.appendChild(exp);return d;
+    }
+    if(n.t==='sub'){
+      d=document.createElement('span');d.className='msub';
+      var base=document.createElement('span');renderList(n.base,base);
+      var idx=document.createElement('span');idx.className='msub-idx';renderList(n.idx,idx);
+      d.appendChild(base);d.appendChild(idx);return d;
+    }
+    if(n.t==='abs'){
+      d=document.createElement('span');d.style.cssText='display:inline-flex;align-items:center;vertical-align:middle';
+      var l=document.createElement('span');l.textContent='|';
+      var body=document.createElement('span');renderList(n.body,body);
+      var r=document.createElement('span');r.textContent='|';
+      d.appendChild(l);d.appendChild(body);d.appendChild(r);return d;
+    }
+    d=document.createElement('span');d.textContent='?';return d;
+  }
+
+  function renderList(list,container){
+    container.innerHTML='';
+    list.forEach(function(n,i){
+      if(cur.list===list&&cur.pos===i){var c=document.createElement('span');c.className='mcursor';container.appendChild(c);}
+      container.appendChild(renderNode(n));
+    });
+    if(cur.list===list&&cur.pos===list.length){var c=document.createElement('span');c.className='mcursor';container.appendChild(c);}
+  }
+
+  function render(){
+    renderList(root,fieldEl);
+    if(onChangeCallback) onChangeCallback(getLatex());
+  }
+
+  function nodeToLatex(n){
+    if(n.t==='text') return n.v;
+    if(n.t==='frac') return '\\frac{'+listToLatex(n.num)+'}{'+listToLatex(n.den)+'}';
+    if(n.t==='sqrt') return n.n===1?'\\sqrt{'+listToLatex(n.body)+'}':'\\sqrt['+n.n+']{'+listToLatex(n.body)+'}';
+    if(n.t==='pow') return '{'+listToLatex(n.base)+'}^{'+listToLatex(n.exp)+'}';
+    if(n.t==='sub') return '{'+listToLatex(n.base)+'}_{'+listToLatex(n.idx)+'}';
+    if(n.t==='abs') return '|'+listToLatex(n.body)+'|';
+    return '';
+  }
+  function listToLatex(list){return list.map(nodeToLatex).join('');}
+  function getLatex(){return listToLatex(root);}
+
+  function moveCursor(dir){
+    if(dir===1){
+      if(cur.pos<cur.list.length){
+        var n=cur.list[cur.pos];
+        if(n.t==='frac'){cur.list=n.num;cur.pos=0;cur.parent=n;cur.field='num';}
+        else if(n.t==='sqrt'){cur.list=n.body;cur.pos=0;cur.parent=n;cur.field='body';}
+        else if(n.t==='pow'){cur.list=n.base;cur.pos=0;cur.parent=n;cur.field='base';}
+        else if(n.t==='sub'){cur.list=n.base;cur.pos=0;cur.parent=n;cur.field='base';}
+        else if(n.t==='abs'){cur.list=n.body;cur.pos=0;cur.parent=n;cur.field='body';}
+        else{cur.pos++;}
+      }
+    } else {
+      if(cur.pos>0){
+        cur.pos--;
+        var n=cur.list[cur.pos];
+        if(n.t==='frac'){cur.list=n.den;cur.pos=n.den.length;cur.parent=n;cur.field='den';}
+        else if(n.t==='sqrt'){cur.list=n.body;cur.pos=n.body.length;cur.parent=n;cur.field='body';}
+        else if(n.t==='pow'){cur.list=n.exp;cur.pos=n.exp.length;cur.parent=n;cur.field='exp';}
+        else if(n.t==='sub'){cur.list=n.idx;cur.pos=n.idx.length;cur.parent=n;cur.field='idx';}
+        else if(n.t==='abs'){cur.list=n.body;cur.pos=n.body.length;cur.parent=n;cur.field='body';}
+      }
+    }
+  }
+
+  function goToParentAfter(node){
+    function findIn(list){
+      for(var i=0;i<list.length;i++){
+        if(list[i]===node){cur.list=list;cur.pos=i+1;cur.parent=null;cur.field=null;return true;}
+        var n=list[i];
+        var subs=['num','den','body','base','exp','idx'];
+        for(var j=0;j<subs.length;j++){if(n[subs[j]]&&findIn(n[subs[j]]))return true;}
+      }
+      return false;
+    }
+    if(!findIn(root)){cur.list=root;cur.pos=root.length;cur.parent=null;cur.field=null;}
+  }
+
+  function exitNode(){
+    var p=cur.parent;
+    if(!p) return;
+    if(p.t==='frac'){
+      if(cur.field==='num'){cur.list=p.den;cur.pos=0;cur.field='den';}
+      else{goToParentAfter(p);}
+    } else if(p.t==='pow'){
+      if(cur.field==='base'){cur.list=p.exp;cur.pos=0;cur.field='exp';}
+      else{goToParentAfter(p);}
+    } else if(p.t==='sub'){
+      if(cur.field==='base'){cur.list=p.idx;cur.pos=0;cur.field='idx';}
+      else{goToParentAfter(p);}
+    } else {
+      goToParentAfter(p);
+    }
+  }
+
+  function insertNode(n){cur.list.splice(cur.pos,0,n);cur.pos++;}
+
+  self.type=function(ch){
+    if(cur.pos>0&&cur.list[cur.pos-1].t==='text'){cur.list[cur.pos-1].v+=ch;}
+    else{insertNode(new TextNode(ch));}
+    render();
+  };
+
+  self.insert=function(what){
+    var n;
+    if(what==='frac'){n=new FracNode();insertNode(n);cur.list=n.num;cur.pos=0;cur.parent=n;cur.field='num';}
+    else if(what==='sqrt'){n=new SqrtNode(1);insertNode(n);cur.list=n.body;cur.pos=0;cur.parent=n;cur.field='body';}
+    else if(what==='cbrt'){n=new SqrtNode(3);insertNode(n);cur.list=n.body;cur.pos=0;cur.parent=n;cur.field='body';}
+    else if(what==='pow'){
+      n=new PowNode();
+      if(cur.pos>0){n.base=[cur.list.splice(cur.pos-1,1)[0]];cur.pos--;}
+      insertNode(n);
+      if(n.base.length){cur.list=n.exp;cur.pos=0;cur.parent=n;cur.field='exp';}
+      else{cur.list=n.base;cur.pos=0;cur.parent=n;cur.field='base';}
+    }
+    else if(what==='sub'){
+      n=new SubNode();
+      if(cur.pos>0){n.base=[cur.list.splice(cur.pos-1,1)[0]];cur.pos--;}
+      insertNode(n);
+      if(n.base.length){cur.list=n.idx;cur.pos=0;cur.parent=n;cur.field='idx';}
+      else{cur.list=n.base;cur.pos=0;cur.parent=n;cur.field='base';}
+    }
+    else if(what==='abs'){n=new AbsNode();insertNode(n);cur.list=n.body;cur.pos=0;cur.parent=n;cur.field='body';}
+    render();
+  };
+
+  self.backspace=function(){
+    if(cur.pos>0){
+      var n=cur.list[cur.pos-1];
+      if(n.t==='text'&&n.v.length>1){n.v=n.v.slice(0,-1);}
+      else{cur.list.splice(cur.pos-1,1);cur.pos--;}
+    } else if(cur.parent){exitNode();}
+    render();
+  };
+
+  self.move=function(d){moveCursor(d);render();};
+  self.exit=function(){exitNode();render();};
+  self.clear=function(){root.length=0;cur.list=root;cur.pos=0;cur.parent=null;cur.field=null;render();};
+  self.getLatex=getLatex;
+
+  fieldEl.addEventListener('keydown',function(e){
+    if(e.key==='ArrowLeft'){e.preventDefault();moveCursor(-1);render();}
+    else if(e.key==='ArrowRight'){e.preventDefault();moveCursor(1);render();}
+    else if(e.key==='Tab'||e.key==='Enter'){e.preventDefault();exitNode();render();}
+    else if(e.key==='Backspace'){e.preventDefault();self.backspace();}
+    else if(e.key==='/'){e.preventDefault();self.insert('frac');}
+    else if(e.key==='^'){e.preventDefault();self.insert('pow');}
+    else if(e.key==='_'){e.preventDefault();self.insert('sub');}
+  });
+
+  fieldEl.addEventListener('keypress',function(e){
+    if(e.key==='/'||e.key==='^'||e.key==='_') return;
+    if(e.key&&e.key.length===1&&!e.ctrlKey&&!e.metaKey){e.preventDefault();self.type(e.key);}
+  });
+
+  fieldEl.addEventListener('click',function(){fieldEl.focus();});
+  render();
+}
+
+
+// Aktiv redaktorlar
+var _meInstances = {};
+
+function _med(id,w){if(_meInstances[id])_meInstances[id].insert(w);}
+function _met(id,s){if(_meInstances[id])_meInstances[id].type(s);}
+function _meback(id){if(_meInstances[id])_meInstances[id].backspace();}
+function _memove(id,d){if(_meInstances[id])_meInstances[id].move(d);}
+function _meexit(id){if(_meInstances[id])_meInstances[id].exit();}
+function _meclear(id){if(_meInstances[id])_meInstances[id].clear();}
+
+function createMathEditor(containerId, hiddenInputId, initialLatex){
+  var container = document.getElementById(containerId);
+  if(!container) return;
+
+  var groups = [
+    ['Struktur',[['x/y','ins','frac'],['√','ins','sqrt'],['∛','ins','cbrt'],['xⁿ','ins','pow'],['xₙ','ins','sub'],['|x|','ins','abs']]],
+    ['Həndəsə',[['°','t','°'],['∠','t','∠'],['⊥','t','⊥'],['∥','t','∥'],['△','t','△'],['≅','t','≅'],['⌢','t','⌢']]],
+    ['Əməliyyat',[['×','t','×'],['÷','t','÷'],['±','t','±'],['≠','t','≠'],['≤','t','≤'],['≥','t','≥'],['≈','t','≈'],['∞','t','∞']]],
+    ['Yunan',[['α','t','α'],['β','t','β'],['γ','t','γ'],['θ','t','θ'],['π','t','π'],['φ','t','φ'],['Δ','t','Δ'],['Σ','t','Σ']]],
+    ['Funksiya',[['sin','t','sin '],['cos','t','cos '],['tan','t','tan '],['log','t','log '],['ln','t','ln ']]],
+    ['Redaktə',[['⌫','back',''],['←','move','-1'],['→','move','1'],['↑Çıx','exit',''],['Sil','clear','']]],
+  ];
+
+  var tb = document.createElement('div');
+  tb.className='me-toolbar';
+
+  groups.forEach(function(g){
+    var sec=document.createElement('span');
+    sec.className='me-sec';
+    sec.textContent=g[0];
+    tb.appendChild(sec);
+    g[1].forEach(function(b){
+      var btn=document.createElement('button');
+      btn.className='me-btn';
+      btn.textContent=b[0];
+      if(b[0]==='Sil') btn.style.color='#c1121f';
+      btn.dataset.cid=containerId;
+      btn.dataset.act=b[1];
+      btn.dataset.val=b[2];
+      btn.addEventListener('mousedown',function(e){
+        e.preventDefault();
+        var me=_meInstances[this.dataset.cid];
+        if(!me) return;
+        var act=this.dataset.act, val=this.dataset.val;
+        if(act==='ins') me.insert(val);
+        else if(act==='t') me.type(val);
+        else if(act==='back') me.backspace();
+        else if(act==='move') me.move(parseInt(val));
+        else if(act==='exit') me.exit();
+        else if(act==='clear') me.clear();
+      });
+      tb.appendChild(btn);
+    });
+  });
+
+  var field=document.createElement('div');
+  field.className='me-field';
+  field.id=containerId+'_field';
+  field.tabIndex=0;
+
+  var hint=document.createElement('div');
+  hint.style.cssText='font-size:11px;color:var(--muted);margin-top:5px';
+  hint.textContent='/ = kəsr  |  ^ = qüvvət  |  _ = altındeks  |  Tab = çıx';
+
+  container.appendChild(tb);
+  container.appendChild(field);
+  container.appendChild(hint);
+
+  var me=new MathEditor(field, function(latex){
+    var inp=document.getElementById(hiddenInputId);
+    if(inp){
+      inp.value=latex;
+      inp.dispatchEvent(new Event('input'));
+    }
+    // Şagird test sahəsi üçün setOpen çağır
+    if(hiddenInputId.startsWith('ta_')){
+      var qId=hiddenInputId.replace('ta_','');
+      setOpen(qId, latex);
+    }
+    // Admin cavab sahəsi üçün updateQField çağır
+    if(hiddenInputId.startsWith('ans_')){
+      var qId=hiddenInputId.replace('ans_','');
+      updateQField(qId, 'answer', latex);
+    }
+  });
+  _meInstances[containerId]=me;
+  // Mövcud dəyəri yükle
+  if(!initialLatex){
+    var hiddenInp=document.getElementById(hiddenInputId);
+    if(hiddenInp&&hiddenInp.value) initialLatex=hiddenInp.value;
+  }
+  if(initialLatex){
+    initialLatex.split('').forEach(function(ch){ me.type(ch); });
+  }
+}
+
+
+// ═══ DATA EXPORT/IMPORT ═══
+function exportData(){
+  var d = ld();
+  var blob = new Blob([JSON.stringify(d, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'riyaztest_data_' + new Date().toISOString().substring(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Məlumatlar yükləndi!', 'success');
+}
+
+function importData(input){
+  var f = input.files && input.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = JSON.parse(e.target.result);
+      var msg = document.getElementById('import-msg');
+      if(!data.tests && !data.emails){
+        msg.textContent = '❌ Yanlış fayl formatı!';
+        msg.style.color = '#c1121f';
+        msg.style.display = 'block';
+        return;
+      }
+      if(!confirm('Mövcud məlumatların üzərinə yazılsın?')) return;
+      
+      var d = ld();
+      if(data.tests) d.tests = data.tests;
+      if(data.emails) d.emails = data.emails;
+      if(data.results) d.results = data.results;
+      if(data.ae) localStorage.setItem(SK.ae, data.ae);
+      if(data.ap) localStorage.setItem(SK.ap, data.ap);
+      sv(SK.tests, d.tests);
+      sv(SK.emails, d.emails);
+      sv(SK.results, d.results);
+      
+      msg.textContent = '✅ İdxal uğurlu! ' + (data.tests||[]).length + ' test, ' + (data.results||[]).length + ' nəticə yükləndi.';
+      msg.style.color = '#2d6a4f';
+      msg.style.display = 'block';
+      renderAdminTests();
+      renderEmails();
+      renderResults();
+      showToast('Məlumatlar idxal edildi!', 'success');
+    } catch(err){
+      var msg = document.getElementById('import-msg');
+      msg.textContent = '❌ Xəta: ' + err.message;
+      msg.style.color = '#c1121f';
+      msg.style.display = 'block';
+    }
+  };
+  reader.readAsText(f, 'utf-8');
+  input.value = '';
+}
+
+// ═══ SETTINGS ═══
+function saveSettings(){
+  localStorage.setItem(SK.ae,document.getElementById('s-email').value);
+  localStorage.setItem(SK.ap,document.getElementById('s-pass').value);
+  // Firebase-ə də yaz
+  if(window.FB){
+    var d=ld();
+    window.FB.saveAll({
+      tests:d.tests, emails:d.emails, results:d.results,
+      ae:document.getElementById('s-email').value,
+      ap:document.getElementById('s-pass').value
+    });
+  }
+  showToast('Saxlandı ✓','success');
+}
+</script>
+</body>
+</html>
