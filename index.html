@@ -1004,7 +1004,7 @@ function doSubmit(auto=false){
       var taEl=document.getElementById('ta_'+q.id);
       var rawA = (taEl && taEl.value) ? taEl.value : (typeof a==='string'?a:'');
       const ua=rawA.trim();
-      const ok=ua.toLowerCase()===(q.answer||'').toLowerCase();
+      const ok=normalizeAnswer(ua)===normalizeAnswer(q.answer||'');
       if(ua){if(ok)correct++;else wrong++;}
       review.push({q:q.text,type:'open',userAns:ua||'—',correctAns:q.answer||'(Açıq)',isCorrect:ua?ok:null});
     }
@@ -1857,6 +1857,55 @@ function importData(input){
   };
   reader.readAsText(f, 'utf-8');
   input.value = '';
+}
+
+
+function normalizeAnswer(s){
+  if(!s) return '';
+  return s.trim()
+    .toLowerCase()
+    // Boşluqları sil
+    .replace(/\s+/g,'')
+    // sqrt(x) -> √x
+    .replace(/sqrt\(([^)]+)\)/g,'√$1')
+    .replace(/\\sqrt\{([^}]+)\}/g,'√$1')
+    .replace(/\\sqrt/g,'√')
+    // Kəsr: frac{a}{b} -> a/b
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g,'$1/$2')
+    // Qüvvət: ^{n} -> ^n
+    .replace(/\^\{([^}]+)\}/g,'^$1')
+    // LaTeX xüsusi simvollar
+    .replace(/\\times/g,'×')
+    .replace(/\\div/g,'÷')
+    .replace(/\\pm/g,'±')
+    .replace(/\\neq/g,'≠')
+    .replace(/\\leq/g,'≤')
+    .replace(/\\geq/g,'≥')
+    .replace(/\\approx/g,'≈')
+    .replace(/\\infty/g,'∞')
+    .replace(/\\angle/g,'∠')
+    .replace(/\\perp/g,'⊥')
+    .replace(/\\parallel/g,'∥')
+    .replace(/\\triangle/g,'△')
+    .replace(/\\alpha/g,'α')
+    .replace(/\\beta/g,'β')
+    .replace(/\\gamma/g,'γ')
+    .replace(/\\theta/g,'θ')
+    .replace(/\\pi/g,'π')
+    .replace(/\\phi/g,'φ')
+    .replace(/\\Delta/g,'δ')
+    .replace(/\\Sigma/g,'σ')
+    .replace(/\\sin/g,'sin')
+    .replace(/\\cos/g,'cos')
+    .replace(/\\tan/g,'tan')
+    .replace(/\\log/g,'log')
+    .replace(/\\ln/g,'ln')
+    // Mötərizələri sil (sadə ifadələr üçün)
+    .replace(/[{}\(\)]/g,'')
+    // Çoxlu backslash-ları sil
+    .replace(/\\/g,'')
+    // Nöqtəli ədədlər: 3,5 = 3.5
+    .replace(/,/g,'.');
 }
 
 // ═══ SETTINGS ═══
